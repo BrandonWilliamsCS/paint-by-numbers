@@ -1,9 +1,39 @@
 {
-  "extends": ["tslint:recommended", "tslint-react", "tslint-config-prettier"],
-  "linterOptions": {
-    "exclude": [
-      "config/**/*.js",
-      "node_modules/**/*.ts"
-    ]
-  }
+    "defaultSeverity": "error",
+    "extends": [
+        "tslint:recommended",
+        "tslint-eslint-rules",
+        "tslint-react",
+        "tslint-config-prettier"
+    ],
+    "jsRules": {},
+    "rules": {
+        "interface-name": [true, "never-prefix"],
+        "jsx-boolean-value": [true, "never"],
+        "member-ordering": [
+            true,
+            {
+                "order": [
+                    "private-static-field",
+                    "protected-static-field",
+                    "public-static-field",
+                    "private-instance-field",
+                    "protected-instance-field",
+                    "public-instance-field",
+                    "public-constructor",
+                    "protected-constructor",
+                    "private-constructor",
+                    "public-instance-method",
+                    "protected-instance-method",
+                    "private-instance-method",
+                    "private-static-method",
+                    "protected-static-method",
+                    "public-static-method"
+                ]
+            }
+        ],
+        "no-namespace": false,
+        "object-literal-sort-keys": false
+    },
+    "rulesDirectory": []
 }
