@@ -8,8 +8,13 @@
     ],
     "jsRules": {},
     "rules": {
+        "comment-format": {
+            "options": "check-space",
+            "severity": "warning"
+        },
         "interface-name": [true, "never-prefix"],
         "jsx-boolean-value": [true, "never"],
+        "max-classes-per-file": false,
         "member-ordering": [
             true,
             {
