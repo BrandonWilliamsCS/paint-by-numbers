@@ -37,6 +37,7 @@
                 ]
             }
         ],
+        "no-console": { "severity": "warning" },
         "no-namespace": false,
         "object-literal-sort-keys": false
     },
