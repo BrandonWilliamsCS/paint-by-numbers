@@ -46,8 +46,25 @@ export interface HeterogeneousRegionPreviewProps<T> {
 export class HeterogeneousRegionPreview<T> extends React.Component<
     HeterogeneousRegionPreviewProps<T>
 > {
+    public renderSubTree(subtree: QuadTree<T>) {
+        return (
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                }}
+            >
+                <QuadTreePreview
+                    tree={subtree}
+                    contentRenderer={this.props.contentRenderer}
+                    scale={this.props.scale}
+                />
+            </div>
+        );
+    }
+
     public render() {
-        //!! padding around children.
         const region = this.props.region;
         const degenerateRight = region.topRight.variant === "degenerate";
         const degenerateBottom = region.bottomLeft.variant === "degenerate";
@@ -55,40 +72,21 @@ export class HeterogeneousRegionPreview<T> extends React.Component<
         return (
             <div
                 style={{
+                    flexGrow: 1,
+                    alignSelf: "stretch",
                     display: "inline-grid",
                     // if there's no right side, just render the one column.
                     gridTemplateColumns: `auto${
                         !degenerateRight ? " auto" : ""
                     }`,
+                    gridGap: "1px",
                     backgroundColor: "grey",
                 }}
             >
-                <QuadTreePreview
-                    tree={region.topLeft}
-                    contentRenderer={this.props.contentRenderer}
-                    scale={this.props.scale}
-                />
-                {!degenerateRight && (
-                    <QuadTreePreview
-                        tree={region.topRight}
-                        contentRenderer={this.props.contentRenderer}
-                        scale={this.props.scale}
-                    />
-                )}
-                {!degenerateBottom && (
-                    <QuadTreePreview
-                        tree={region.bottomLeft}
-                        contentRenderer={this.props.contentRenderer}
-                        scale={this.props.scale}
-                    />
-                )}
-                {!isDegenerate && (
-                    <QuadTreePreview
-                        tree={region.bottomRight}
-                        contentRenderer={this.props.contentRenderer}
-                        scale={this.props.scale}
-                    />
-                )}
+                {this.renderSubTree(region.topLeft)}
+                {!degenerateRight && this.renderSubTree(region.topRight)}
+                {!degenerateBottom && this.renderSubTree(region.bottomLeft)}
+                {!isDegenerate && this.renderSubTree(region.bottomRight)}
             </div>
         );
     }
