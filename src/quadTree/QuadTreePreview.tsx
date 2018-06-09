@@ -1,5 +1,6 @@
 import * as React from "react";
 
+import { Position } from "../Position";
 import { HeterogeneousRegion, QuadTree } from "./RegionQuadTree";
 
 import { HomogeneousRegionPreview } from "./HomogeneousRegionPreview";
@@ -66,9 +67,11 @@ export class HeterogeneousRegionPreview<T> extends React.Component<
 
     public render() {
         const region = this.props.region;
-        const degenerateRight = region.topRight.variant === "degenerate";
-        const degenerateBottom = region.bottomLeft.variant === "degenerate";
-        const isDegenerate = degenerateRight || degenerateBottom;
+        const hasDegenerateRight =
+            region[Position.TopRight].variant === "degenerate";
+        const hasDegenerateBottom =
+            region[Position.BottomLeft].variant === "degenerate";
+        const isDegenerate = hasDegenerateRight || hasDegenerateBottom;
         return (
             <div
                 style={{
@@ -77,16 +80,19 @@ export class HeterogeneousRegionPreview<T> extends React.Component<
                     display: "inline-grid",
                     // if there's no right side, just render the one column.
                     gridTemplateColumns: `auto${
-                        !degenerateRight ? " auto" : ""
+                        !hasDegenerateRight ? " auto" : ""
                     }`,
                     gridGap: "1px",
                     backgroundColor: "grey",
                 }}
             >
-                {this.renderSubTree(region.topLeft)}
-                {!degenerateRight && this.renderSubTree(region.topRight)}
-                {!degenerateBottom && this.renderSubTree(region.bottomLeft)}
-                {!isDegenerate && this.renderSubTree(region.bottomRight)}
+                {this.renderSubTree(region[Position.TopLeft])}
+                {!hasDegenerateRight &&
+                    this.renderSubTree(region[Position.TopRight])}
+                {!hasDegenerateBottom &&
+                    this.renderSubTree(region[Position.BottomLeft])}
+                {!isDegenerate &&
+                    this.renderSubTree(region[Position.BottomRight])}
             </div>
         );
     }

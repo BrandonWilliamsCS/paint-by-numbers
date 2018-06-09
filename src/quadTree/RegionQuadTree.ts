@@ -1,3 +1,4 @@
+import { Position } from "../Position";
 import { Region } from "./Region";
 import { Subdivided } from "./Subdivided";
 
@@ -82,21 +83,21 @@ export namespace QuadTree {
         // recurse: get the tree for each subdivision and join if possible.
         const subdividedRegion = subdivide(region);
         const subdividedTree: Subdivided<QuadTree<T>> = {
-            topLeft: buildTreeWithAccessor(
+            [Position.TopLeft]: buildTreeWithAccessor(
                 atomAccessor,
-                subdividedRegion.topLeft,
+                subdividedRegion[Position.TopLeft],
             ),
-            topRight: buildTreeWithAccessor(
+            [Position.TopRight]: buildTreeWithAccessor(
                 atomAccessor,
-                subdividedRegion.topRight,
+                subdividedRegion[Position.TopRight],
             ),
-            bottomLeft: buildTreeWithAccessor(
+            [Position.BottomLeft]: buildTreeWithAccessor(
                 atomAccessor,
-                subdividedRegion.bottomLeft,
+                subdividedRegion[Position.BottomLeft],
             ),
-            bottomRight: buildTreeWithAccessor(
+            [Position.BottomRight]: buildTreeWithAccessor(
                 atomAccessor,
-                subdividedRegion.bottomRight,
+                subdividedRegion[Position.BottomRight],
             ),
         };
 
@@ -117,25 +118,25 @@ export namespace QuadTree {
         const bottomHeight = region.height - topHeight;
 
         return {
-            topLeft: {
+            [Position.TopLeft]: {
                 x: region.x,
                 y: region.y,
                 width: leftWidth,
                 height: topHeight,
             },
-            topRight: {
+            [Position.TopRight]: {
                 x: region.x + leftWidth,
                 y: region.y,
                 width: rightWidth,
                 height: topHeight,
             },
-            bottomLeft: {
+            [Position.BottomLeft]: {
                 x: region.x,
                 y: region.y + topHeight,
                 width: leftWidth,
                 height: bottomHeight,
             },
-            bottomRight: {
+            [Position.BottomRight]: {
                 x: region.x + leftWidth,
                 y: region.y + topHeight,
                 width: rightWidth,
@@ -147,28 +148,29 @@ export namespace QuadTree {
     export function getPropertiesIfHomogeneous<T>(
         subdividedTree: Subdivided<QuadTree<T>>,
     ): T | undefined {
+        const topLeft = subdividedTree[Position.TopLeft];
+        const topRight = subdividedTree[Position.TopRight];
+        const bottomRight = subdividedTree[Position.BottomRight];
+        const bottomLeft = subdividedTree[Position.BottomLeft];
         if (
-            subdividedTree.topLeft.variant !== "homogeneous" ||
-            subdividedTree.topRight.variant === "heterogeneous" ||
-            subdividedTree.bottomLeft.variant === "heterogeneous" ||
-            subdividedTree.bottomRight.variant === "heterogeneous"
+            topLeft.variant !== "homogeneous" ||
+            topRight.variant === "heterogeneous" ||
+            bottomLeft.variant === "heterogeneous" ||
+            bottomRight.variant === "heterogeneous"
         ) {
             // If there are any heterogeneous subregions, the region as a whole must also be heterogeneous.
             // Since the top-left subregion is never degenerate, compare it to homogeneous to save some casting later.
             return undefined;
         } else if (
-            (subdividedTree.topRight.variant === "degenerate" ||
-                subdividedTree.topRight.regionProperties ===
-                    subdividedTree.topLeft.regionProperties) &&
-            (subdividedTree.bottomLeft.variant === "degenerate" ||
-                subdividedTree.bottomLeft.regionProperties ===
-                    subdividedTree.topLeft.regionProperties) &&
-            (subdividedTree.bottomRight.variant === "degenerate" ||
-                subdividedTree.bottomRight.regionProperties ===
-                    subdividedTree.topLeft.regionProperties)
+            (topRight.variant === "degenerate" ||
+                topRight.regionProperties === topLeft.regionProperties) &&
+            (bottomLeft.variant === "degenerate" ||
+                bottomLeft.regionProperties === topLeft.regionProperties) &&
+            (bottomRight.variant === "degenerate" ||
+                bottomRight.regionProperties === topLeft.regionProperties)
         ) {
             // make sure the non-degenerate regions all have the same properties; if so, this region is homogeneous.
-            return subdividedTree.topLeft.regionProperties;
+            return topLeft.regionProperties;
         }
         // In this case, not all subregions have the same properties.
         return undefined;
