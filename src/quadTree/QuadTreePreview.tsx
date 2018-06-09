@@ -1,9 +1,7 @@
 import * as React from "react";
 
 import { Position } from "../Position";
-import { HeterogeneousRegion, QuadTree } from "./RegionQuadTree";
-
-import { HomogeneousRegionPreview } from "./HomogeneousRegionPreview";
+import { HeterogeneousRegion, HomogeneousRegion, QuadTree } from "./QuadTree";
 
 export interface QuadTreePreviewProps<T> {
     tree: QuadTree<T>;
@@ -93,6 +91,32 @@ export class HeterogeneousRegionPreview<T> extends React.Component<
                     this.renderSubTree(region[Position.BottomLeft])}
                 {!isDegenerate &&
                     this.renderSubTree(region[Position.BottomRight])}
+            </div>
+        );
+    }
+}
+
+export interface HomogeneousRegionPreviewProps<T> {
+    region: HomogeneousRegion<T>;
+    contentRenderer: (properties: T) => JSX.Element;
+    scale?: number;
+}
+
+export class HomogeneousRegionPreview<T> extends React.Component<
+    HomogeneousRegionPreviewProps<T>
+> {
+    public render() {
+        const scale = this.props.scale || 1;
+        const region = this.props.region;
+        return (
+            <div
+                style={{
+                    width: region.region.width * scale,
+                    height: region.region.height * scale,
+                    display: "flex",
+                }}
+            >
+                {this.props.contentRenderer(region.regionProperties)}
             </div>
         );
     }

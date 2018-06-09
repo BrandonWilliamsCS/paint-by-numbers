@@ -2,8 +2,9 @@ import * as React from "react";
 
 import { Bitmap } from "./Bitmap";
 import { Color } from "./Color";
-import { Region } from "./quadTree/Region";
-import { QuadTree } from "./quadTree/RegionQuadTree";
+import { buildTree } from "./quadTree/build";
+import { QuadTree } from "./quadTree/QuadTree";
+import { Region } from "./Region";
 
 import "./App.css";
 import { ColorRegion } from "./ColorRegion";
@@ -64,7 +65,7 @@ class App extends React.Component<{}, AppState> {
             width: image.width,
             height: image.height,
         };
-        const tree = QuadTree.buildTree(colorAccessor, region);
+        const tree = buildTree(colorAccessor, region);
         this.setState({ tree });
     }
 }
