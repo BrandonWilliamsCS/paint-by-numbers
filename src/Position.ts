@@ -29,15 +29,39 @@ export namespace Position {
         return (position + adjustment) % 8;
     }
 
-    export function adjacentTo(
+    export function oppositeOf(position: CornerPosition): CornerPosition;
+    export function oppositeOf(position: SidePosition): SidePosition;
+    export function oppositeOf(position: Position): Position {
+        return rotate(position, 4);
+    }
+
+    export function rotationallyAdjacentTo(
         position: CornerPosition,
     ): [SidePosition, SidePosition];
-    export function adjacentTo(
+    export function rotationallyAdjacentTo(
         position: SidePosition,
     ): [CornerPosition, CornerPosition];
-    export function adjacentTo(position: Position): [Position, Position] {
+    export function rotationallyAdjacentTo(
+        position: Position,
+    ): [Position, Position] {
         // the next adjacent positions are just rotations a unit in each direction
         return [rotate(position, -1), rotate(position, 1)];
+    }
+
+    export function isRotationallyAdjacentTo(
+        first: CornerPosition,
+        second: SidePosition,
+    ): boolean;
+    export function isRotationallyAdjacentTo(
+        first: SidePosition,
+        second: CornerPosition,
+    ): boolean;
+    export function isRotationallyAdjacentTo(
+        first: Position,
+        second: Position,
+    ): boolean {
+        // the next adjacent positions are just rotations a unit in each direction
+        return second === rotate(first, 1) || second === rotate(first, -1);
     }
 
     export function between(
@@ -63,6 +87,33 @@ export namespace Position {
             );
         }
     }
+
+    /**
+     * Compute the Position obtained after moving toward a given side.
+     * Note that this has a "looping" effect; moving towards the Top from the TopLeft yields BottomLeft.
+     * @param from The origin Position
+     * @param toward a Position toward which to move
+     */
+    export function afterMovingTowards(
+        from: SidePosition,
+        toward: CornerPosition,
+    ): SidePosition;
+    export function afterMovingTowards(
+        from: CornerPosition,
+        toward: SidePosition,
+    ): CornerPosition;
+    export function afterMovingTowards(
+        from: Position,
+        toward: Position,
+    ): Position {
+        // Miraculously, the outcome is the sum of `toward` and its opposite, adjusted by `-from`.
+        // For example, from `BottomLeft` (6) toward Right (3) is
+        //  `Right` + `Left` - `BottomLeft` = 3 + 7 - 6 = 4 = `BottomRight.
+        // Now since the opposite is just +4, this simplifies to 4 + 2*toward - from.
+        // To simplify the mod math, add an additional 8.
+        return 2 * toward + 12 - from;
+    }
+
     export const corners: CornerPosition[] = [
         Position.TopLeft,
         Position.TopRight,
