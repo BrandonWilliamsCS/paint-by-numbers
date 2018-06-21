@@ -111,7 +111,7 @@ export namespace Position {
         //  `Right` + `Left` - `BottomLeft` = 3 + 7 - 6 = 4 = `BottomRight.
         // Now since the opposite is just +4, this simplifies to 4 + 2*toward - from.
         // To simplify the mod math, add an additional 8.
-        return 2 * toward + 12 - from;
+        return (2 * toward + 12 - from) % 8;
     }
 
     export const corners: CornerPosition[] = [

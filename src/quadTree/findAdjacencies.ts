@@ -113,3 +113,116 @@ function findSubtreeAdjacencyOnSide<T>(
     //  — —    — —    ———
     return parentAdjacency[adjacentCornerOnSide];
 }
+
+export function sanityCheckAdjacencies<T>(
+    adjacencyMap: TreeAdjacencyMap<T>,
+    imageWidth: number,
+    imageHeight: number,
+) {
+    adjacencyMap.forEach((adjacencies, tree) => {
+        if (tree.variant === "heterogeneous") {
+            throw new Error(
+                "het. tree in adj map: " + JSON.stringify(tree.region),
+            );
+        }
+        const region = tree.region;
+
+        const top = adjacencies[Position.Top];
+        if (top === SpecialAdjacency.None) {
+            if (region.y !== 0) {
+                throw new Error(
+                    "None adj at top of: " + JSON.stringify(region),
+                );
+            }
+        } else {
+            if (
+                region.width > top.region.width ||
+                region.height > top.region.height ||
+                region.x < top.region.x ||
+                region.x + region.width > top.region.x + top.region.width ||
+                region.y !== top.region.y + top.region.height
+            ) {
+                throw new Error(
+                    "Adj mismatch to top of: " +
+                        JSON.stringify(region) +
+                        " which is " +
+                        JSON.stringify(top.region),
+                );
+            }
+        }
+
+        const left = adjacencies[Position.Left];
+        if (left === SpecialAdjacency.None) {
+            if (region.x !== 0) {
+                throw new Error(
+                    "None adj at left of: " + JSON.stringify(region),
+                );
+            }
+        } else {
+            if (
+                region.width > left.region.width ||
+                region.height > left.region.height ||
+                region.y < left.region.y ||
+                region.y + region.height > left.region.y + left.region.height ||
+                region.x !== left.region.x + left.region.width
+            ) {
+                throw new Error(
+                    "Adj mismatch to left of: " +
+                        JSON.stringify(region) +
+                        " which is " +
+                        JSON.stringify(left.region),
+                );
+            }
+        }
+
+        const bottom = adjacencies[Position.Bottom];
+        if (bottom === SpecialAdjacency.None) {
+            if (region.y + region.height !== imageHeight) {
+                throw new Error(
+                    "None adj at bottom of: " + JSON.stringify(region),
+                );
+            }
+        } else {
+            if (
+                region.width > bottom.region.width ||
+                region.height > bottom.region.height ||
+                region.x < bottom.region.x ||
+                region.x + region.width >
+                    bottom.region.x + bottom.region.width ||
+                region.y + region.height !== bottom.region.y
+            ) {
+                throw new Error(
+                    "Adj mismatch to bottom of: " +
+                        JSON.stringify(region) +
+                        " which is " +
+                        JSON.stringify(bottom.region),
+                );
+            }
+        }
+
+        const right = adjacencies[Position.Right];
+        if (right === SpecialAdjacency.None) {
+            if (region.x + region.width !== imageWidth) {
+                throw new Error(
+                    "None adj at right of: " + JSON.stringify(region),
+                );
+            }
+        } else {
+            if (
+                region.width > right.region.width ||
+                region.height > right.region.height ||
+                region.y < right.region.y ||
+                region.y + region.height >
+                    right.region.y + right.region.height ||
+                region.x + region.width !== right.region.x
+            ) {
+                throw new Error(
+                    "Adj mismatch to right of: " +
+                        JSON.stringify(region) +
+                        " which is " +
+                        JSON.stringify(right.region),
+                );
+            }
+        }
+    });
+}

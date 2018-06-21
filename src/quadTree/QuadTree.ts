@@ -24,3 +24,5 @@ export interface HeterogeneousRegion<T>
 export interface DegenerateRegion extends QuadTreeRegion {
     readonly variant: "degenerate";
 }
+
+//!! path: an array of CornerPosition

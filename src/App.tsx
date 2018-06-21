@@ -3,6 +3,10 @@ import * as React from "react";
 import { Bitmap } from "./Bitmap";
 import { Color } from "./Color";
 import { buildTree } from "./quadTree/build";
+import {
+    findBaseAdjacencies,
+    sanityCheckAdjacencies,
+} from "./quadTree/findAdjacencies";
 import { QuadTree } from "./quadTree/QuadTree";
 import { Region } from "./Region";
 
@@ -25,6 +29,7 @@ class App extends React.Component<{}, AppState> {
         };
         this.loadImage = this.loadImage.bind(this);
         this.createTree = this.createTree.bind(this);
+        this.findAdjacencies = this.findAdjacencies.bind(this);
     }
     public render() {
         return (
@@ -35,6 +40,11 @@ class App extends React.Component<{}, AppState> {
                 {this.state.image && (
                     <button type="button" onClick={this.createTree}>
                         Tree
+                    </button>
+                )}
+                {this.state.tree && (
+                    <button type="button" onClick={this.findAdjacencies}>
+                        Adjacencies
                     </button>
                 )}
                 {this.state.tree && (
@@ -56,7 +66,7 @@ class App extends React.Component<{}, AppState> {
         this.setState({ image });
     }
 
-    private async createTree() {
+    private createTree() {
         const image = this.state.image!;
         const colorAccessor = (x: number, y: number) => image.colorAt(x, y);
         const region: Region = {
@@ -67,6 +77,12 @@ class App extends React.Component<{}, AppState> {
         };
         const tree = buildTree(colorAccessor, region);
         this.setState({ tree });
+    }
+
+    private findAdjacencies() {
+        const adjacencies = findBaseAdjacencies(this.state.tree!);
+        const image = this.state.image!;
+        sanityCheckAdjacencies(adjacencies, image.width, image.height);
     }
 }
 
