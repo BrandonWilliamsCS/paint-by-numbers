@@ -7,6 +7,7 @@ export interface QuadTreePreviewProps<T> {
     tree: QuadTree<T>;
     contentRenderer: (properties: T) => JSX.Element;
     scale?: number;
+    gap?: number;
 }
 
 export class QuadTreePreview<T> extends React.PureComponent<
@@ -20,6 +21,7 @@ export class QuadTreePreview<T> extends React.PureComponent<
                         region={this.props.tree}
                         contentRenderer={this.props.contentRenderer}
                         scale={this.props.scale}
+                        gap={this.props.gap}
                     />
                 );
             case "homogeneous":
@@ -40,6 +42,7 @@ export interface HeterogeneousRegionPreviewProps<T> {
     region: HeterogeneousRegion<T>;
     contentRenderer: (properties: T) => JSX.Element;
     scale?: number;
+    gap?: number;
 }
 
 export class HeterogeneousRegionPreview<T> extends React.Component<
@@ -58,6 +61,7 @@ export class HeterogeneousRegionPreview<T> extends React.Component<
                     tree={subtree}
                     contentRenderer={this.props.contentRenderer}
                     scale={this.props.scale}
+                    gap={this.props.gap}
                 />
             </div>
         );
@@ -80,7 +84,7 @@ export class HeterogeneousRegionPreview<T> extends React.Component<
                     gridTemplateColumns: `auto${
                         !hasDegenerateRight ? " auto" : ""
                     }`,
-                    gridGap: "1px",
+                    gridGap: `${this.props.gap || 0}px`,
                     backgroundColor: "grey",
                 }}
             >
