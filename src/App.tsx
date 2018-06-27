@@ -13,6 +13,7 @@ import { Region } from "./Region";
 
 import "./App.css";
 import { ColorRegion } from "./ColorRegion";
+import { DrawAdjacencies } from "./quadTree/DrawAdjacencies";
 import { QuadTreePreview } from "./quadTree/QuadTreePreview";
 import sampleImage from "./sample-large.bmp";
 
@@ -56,10 +57,24 @@ class App extends React.Component<{}, AppState> {
                     </button>
                 )}
                 {this.state.tree && (
-                    <QuadTreePreview
-                        tree={this.state.tree}
-                        contentRenderer={this.renderColor}
-                    />
+                    <div
+                        style={{
+                            position: "relative",
+                            display: "inline-block",
+                        }}
+                    >
+                        <QuadTreePreview
+                            tree={this.state.tree}
+                            contentRenderer={this.renderColor}
+                        />
+                        {this.state.adjacencies && (
+                            <DrawAdjacencies
+                                adjacencies={this.state.adjacencies}
+                                color={"black"}
+                                thickness={2}
+                            />
+                        )}
+                    </div>
                 )}
             </div>
         );

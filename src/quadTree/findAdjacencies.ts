@@ -327,3 +327,59 @@ function flattenToHomogeneous<T>(
     return homogeneousRegions;
 }
 
+export interface TreeAdjacencyPair<T> {
+    from: HomogeneousRegion<T>;
+    to: HomogeneousRegion<T>;
+    on: SidePosition;
+}
+export function flattenAdjacencies<T>(
+    adjacencyMap: TreeAdjacencyMap<T>,
+): Array<TreeAdjacencyPair<T>> {
+    // this simplifies some type stuff later.
+    const badTree = (null as any) as TreeAdjacencyPair<T>;
+    return (
+        _
+            .flatMap(
+                Array.from(adjacencyMap.entries()),
+                ([tree, adjacencies]) => {
+                    return Position.sides.map(side => {
+                        const adjacency = adjacencies[side];
+                        // only pay attention to homogeneous adjacencies.
+                        if (
+                            tree.variant !== "homogeneous" ||
+                            adjacency === SpecialAdjacency.None ||
+                            adjacency.variant !== "homogeneous"
+                        ) {
+                            return badTree;
+                        }
+                        // to "standardize", always go "from" the smaller region.
+                        if (
+                            tree.region.height > adjacency.region.height ||
+                            tree.region.width > adjacency.region.width
+                        ) {
+                            return badTree;
+                        }
+                        // in the case of equal-sized regions, only go right or down.
+                        if (
+                            side !== Position.Right &&
+                            side !== Position.Bottom &&
+                            (tree.region.height === adjacency.region.height ||
+                                tree.region.width === adjacency.region.width)
+                        ) {
+                            return badTree;
+                        }
+
+                        // now all that's left is the correct values.
+                        const adjacencyPair: TreeAdjacencyPair<T> = {
+                            from: tree,
+                            to: adjacency,
+                            on: side,
+                        };
+                        return adjacencyPair;
+                    });
+                },
+            )
+            // get rid of all the bad trees
+            .filter(_.identity)
+    );
+}
