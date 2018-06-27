@@ -1,3 +1,5 @@
+import * as _ from "lodash";
+
 import {
     Adjacencies,
     Adjacency,
@@ -6,7 +8,8 @@ import {
     trivialAdjacencies,
 } from "../Adjacencies";
 import { CornerPosition, Position, SidePosition } from "../Position";
-import { HeterogeneousRegion, QuadTree } from "./QuadTree";
+import { HeterogeneousRegion, HomogeneousRegion, QuadTree } from "./QuadTree";
+import { traversePreOrder } from "./traverse";
 
 export type TreeAdjacency<T> = Adjacency<QuadTree<T>>;
 export type TreeAdjacencies<T> = Adjacencies<QuadTree<T>>;
@@ -70,33 +73,61 @@ function findSubtreeAdjacencyOnSide<T>(
     side: SidePosition,
 ): TreeAdjacency<T> {
     // Let's take the example where subtreeCorner === Position.TopLeft.
-    // Then adjacentCornerOnSide with a side of Left is TopRight,
+    // If the side we're looking at is rotationally adjacent, it's one of
+    //  the "external" adjacent sides.
+    // The Top and Left sides are rotationally adjacent to TopLeft.
+    // The Bottom and Right sides, then, correspond to sides internal
+    //  to the current tree.
+    if (Position.isRotationallyAdjacentTo(side, subtreeCorner)) {
+        // For external sides, we need to look to the parent's adjacencies.
+        return findExternalAdjacencyOnSide<T>(
+            subtreeCorner,
+            parentAdjacencies,
+            side,
+        );
+    }
+
+    // Now we know that the closest corner in the direction
+    //  of `side` is internal.
+    // In our TopLeft example, the adjacentCornerOnSide
+    //  with a side of Left is TopRight,
     //  with a side of Bottom is BottomLeft, etc.
     const adjacentCornerOnSide = Position.afterMovingTowards(
         subtreeCorner,
         side,
     );
-
-    // If the side we're looking at is *not* rotationally adjacent, it's one of
-    //  the "internal" adjacent sides.
-    // In our TopLeft example, the Top and Left sides are rotationally adjacent.
-    // The Bottom and Right sides, then, correspond to sides internal
-    //  to the current tree.
-    if (!Position.isRotationallyAdjacentTo(side, subtreeCorner)) {
+    // If the adjacent corner is degenerate, we will need to keep looking.
+    // It not, we can happily take that internal corner and run with it.
+    if (tree[adjacentCornerOnSide].variant !== "degenerate") {
         return tree[adjacentCornerOnSide];
     }
 
-    // For external sides, we need to look to the parent's adjacencies.
+    // Moving past the internal corner brings us to an external one.
+    // Handle that case, noting that we're starting from a different corner.
+    return findExternalAdjacencyOnSide<T>(
+        adjacentCornerOnSide,
+        parentAdjacencies,
+        side,
+    );
+}
+
+function findExternalAdjacencyOnSide<T>(
+    startingCorner: CornerPosition,
+    parentAdjacencies: TreeAdjacencies<T>,
+    side: SidePosition,
+): TreeAdjacency<T> {
     // The Left adjacency of the TopLeft subtree is also on the Left
     //  of the parent.
     const parentAdjacency = parentAdjacencies[side];
-    // If that adjacency is an "atom" of some kind, we can just run with it.
+    // If that adjacency is an "atom" of some kind, we can just use it.
     // (Example: to the Left of the parent is a homogeneous region; that region
     //   is also to the Left of the subtree.)
     if (
         parentAdjacency === SpecialAdjacency.None ||
         parentAdjacency.variant !== "heterogeneous"
     ) {
+        // We can be sure it's not degenerate because it's already being used
+        //  as an adjacency of the parent.
         return parentAdjacency;
     }
 
@@ -111,21 +142,38 @@ function findSubtreeAdjacencyOnSide<T>(
     //  — —    — —   | w |
     // | | |  | |z|  |   |
     //  — —    — —    ———
-    return parentAdjacency[adjacentCornerOnSide];
+    const firstCornerOnSide = Position.afterMovingTowards(startingCorner, side);
+
+    // We do need to watch out for degeneracy, though. If the first corner
+    //  on the side is degenerate, we need to move past it to the next corner.
+    //  —     — —
+    // |y||  |x| |
+    //  —     — —
+    // | ||  | |z|
+    //  —     — —
+    // Fortunately, if you move toward the same side twice you loop back to the
+    //  same corner position as the origin.
+    // E.g., RightOf(RightOf(TopLeft)) = RightOf(TopRight) = TopLeft.
+    const secondCornerOnSide = startingCorner;
+
+    return parentAdjacency[firstCornerOnSide].variant !== "degenerate"
+        ? parentAdjacency[firstCornerOnSide]
+        : parentAdjacency[secondCornerOnSide];
 }
 
 export function sanityCheckAdjacencies<T>(
+    tree: QuadTree<T>,
     adjacencyMap: TreeAdjacencyMap<T>,
     imageWidth: number,
     imageHeight: number,
 ) {
-    adjacencyMap.forEach((adjacencies, tree) => {
-        if (tree.variant === "heterogeneous") {
+    adjacencyMap.forEach((adjacencies, from) => {
+        if (from.variant === "heterogeneous") {
             throw new Error(
-                "het. tree in adj map: " + JSON.stringify(tree.region),
+                "het. tree in adj map: " + JSON.stringify(from.region),
             );
         }
-        const region = tree.region;
+        const region = from.region;
 
         const top = adjacencies[Position.Top];
         if (top === SpecialAdjacency.None) {
@@ -134,6 +182,13 @@ export function sanityCheckAdjacencies<T>(
                     "None adj at top of: " + JSON.stringify(region),
                 );
             }
+        } else if (top.variant === "degenerate") {
+            throw new Error(
+                "Degenerate adjacency to top of: " +
+                    JSON.stringify(region) +
+                    " which is " +
+                    JSON.stringify(top.region),
+            );
         } else {
             if (
                 region.width > top.region.width ||
@@ -158,6 +213,13 @@ export function sanityCheckAdjacencies<T>(
                     "None adj at left of: " + JSON.stringify(region),
                 );
             }
+        } else if (left.variant === "degenerate") {
+            throw new Error(
+                "Degenerate adjacency to left of: " +
+                    JSON.stringify(region) +
+                    " which is " +
+                    JSON.stringify(left.region),
+            );
         } else {
             if (
                 region.width > left.region.width ||
@@ -182,6 +244,13 @@ export function sanityCheckAdjacencies<T>(
                     "None adj at bottom of: " + JSON.stringify(region),
                 );
             }
+        } else if (bottom.variant === "degenerate") {
+            throw new Error(
+                "Degenerate adjacency to bottom of: " +
+                    JSON.stringify(region) +
+                    " which is " +
+                    JSON.stringify(bottom.region),
+            );
         } else {
             if (
                 region.width > bottom.region.width ||
@@ -207,6 +276,13 @@ export function sanityCheckAdjacencies<T>(
                     "None adj at right of: " + JSON.stringify(region),
                 );
             }
+        } else if (right.variant === "degenerate") {
+            throw new Error(
+                "Degenerate adjacency to right of: " +
+                    JSON.stringify(region) +
+                    " which is " +
+                    JSON.stringify(right.region),
+            );
         } else {
             if (
                 region.width > right.region.width ||
@@ -225,4 +301,29 @@ export function sanityCheckAdjacencies<T>(
             }
         }
     });
+
+    flattenToHomogeneous(tree).forEach(homogeneousRegion => {
+        if (!adjacencyMap.has(homogeneousRegion)) {
+            throw new Error(
+                "hom. tree missing from adj map: " +
+                    JSON.stringify(homogeneousRegion.region),
+            );
+        }
+    });
 }
+
+function flattenToHomogeneous<T>(
+    tree: QuadTree<T>,
+): Array<HomogeneousRegion<T>> {
+    const homogeneousRegions: Array<HomogeneousRegion<T>> = [];
+    traversePreOrder(
+        tree,
+        () => undefined,
+        homogeneousRegion => {
+            homogeneousRegions.push(homogeneousRegion);
+        },
+        () => undefined,
+    );
+    return homogeneousRegions;
+}
+
