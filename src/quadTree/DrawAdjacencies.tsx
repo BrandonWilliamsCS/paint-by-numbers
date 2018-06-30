@@ -15,8 +15,10 @@ export class DrawAdjacencies<T> extends React.PureComponent<
     DrawAdjacenciesProps<T>
 > {
     public render(): JSX.Element | null {
-        let borderString = `${this.props.thickness || 1}px solid ${this.props
-            .color || "black"}`;
+        const thickness = this.props.thickness || 1;
+        const expand = Math.ceil(thickness / 2);
+        let borderString = `${thickness}px solid ${this.props.color ||
+            "black"}`;
         const flatAdjacencies = flattenAdjacencies(this.props.adjacencies);
         return (
             <div
@@ -55,10 +57,14 @@ export class DrawAdjacencies<T> extends React.PureComponent<
                             style={{
                                 boxSizing: "border-box",
                                 position: "absolute",
-                                top: adjacencyPair.from.region.y,
-                                left: adjacencyPair.from.region.x,
-                                width: adjacencyPair.from.region.width,
-                                height: adjacencyPair.from.region.height,
+                                top: adjacencyPair.from.region.y - expand,
+                                left: adjacencyPair.from.region.x - expand,
+                                width:
+                                    adjacencyPair.from.region.width +
+                                    2 * expand,
+                                height:
+                                    adjacencyPair.from.region.height +
+                                    2 * expand,
                                 [borderKey]: borderString,
                             }}
                         />
