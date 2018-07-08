@@ -12,6 +12,7 @@
         "eject": "react-scripts-ts eject"
     },
     "dependencies": {
+        "aphrodite": "^2.2.2",
         "bmp-js": "^0.1.0",
         "lodash": "^4.17.10",
         "react": "^16.4.0",

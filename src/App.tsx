@@ -1,20 +1,20 @@
+import { css, StyleSheet } from "aphrodite";
 import * as React from "react";
 
 import { Bitmap } from "./Bitmap";
 import { Color } from "./Color";
-import { buildTree } from "./quadTree/build";
 import {
     findBaseAdjacencies,
     sanityCheckAdjacencies,
     TreeAdjacencyMap,
-} from "./quadTree/findAdjacencies";
+} from "./quadTree/Adjacencies";
+import { buildTree } from "./quadTree/build";
 import { QuadTree } from "./quadTree/QuadTree";
 import { Region } from "./Region";
 
 import "./App.css";
-import { ColorRegion } from "./ColorRegion";
-import { DrawAdjacencies } from "./quadTree/DrawAdjacencies";
-import { QuadTreePreview } from "./quadTree/QuadTreePreview";
+import { MainMenu } from "./layout/MainMenu";
+import { Workspace } from "./layout/Workspace";
 import sampleImage from "./sample-large.bmp";
 
 interface AppState {
@@ -31,6 +31,7 @@ class App extends React.Component<{}, AppState> {
             tree: undefined,
             adjacencies: undefined,
         };
+        this.handleFileLoad = this.handleFileLoad.bind(this);
         this.shortcut = this.shortcut.bind(this);
         this.loadImage = this.loadImage.bind(this);
         this.createTree = this.createTree.bind(this);
@@ -38,54 +39,42 @@ class App extends React.Component<{}, AppState> {
     }
     public render() {
         return (
-            <div className="App">
-                <button type="button" onClick={this.shortcut}>
-                    All
-                </button>
-                <br />
-                <button type="button" onClick={this.loadImage}>
-                    Load
-                </button>
-                {this.state.image && (
-                    <button type="button" onClick={this.createTree}>
-                        Tree
-                    </button>
-                )}
-                {this.state.tree && (
-                    <button type="button" onClick={this.findAdjacencies}>
-                        Adjacencies
-                    </button>
-                )}
-                {this.state.tree && (
-                    <div
-                        style={{
-                            position: "relative",
-                            display: "inline-block",
-                        }}
-                    >
-                        <QuadTreePreview
-                            tree={this.state.tree}
-                            contentRenderer={this.renderColor}
-                        />
-                        {this.state.adjacencies && (
-                            <DrawAdjacencies
-                                adjacencies={this.state.adjacencies}
-                                color={"black"}
-                                thickness={2}
-                            />
-                        )}
-                    </div>
-                )}
+            <div className={css(style.page)}>
+                <div className={css(style.actionPanel)}>
+                    <MainMenu
+                        isProjectLoaded={!!this.state.tree}
+                        onFileUpload={this.handleFileLoad}
+                        //!! DEBUG
+                        onDebug={this.shortcut}
+                    />
+                </div>
+                <div className={css(style.contentPanel)}>
+                    <Workspace
+                        tree={this.state.tree}
+                        adjacencies={this.state.adjacencies}
+                    />
+                </div>
+                <div className={css(style.contextPanel)} />
             </div>
         );
     }
 
-    public renderColor(color: Color): JSX.Element {
-        return <ColorRegion color={color} />;
+    private async handleFileLoad(file: File) {
+        //!! extract file/storage logic
+        if (file.type === "image/bmp") {
+            await this.loadImage(file);
+            this.createTree();
+            this.findAdjacencies();
+        } else {
+            //!! pbn file
+            throw new Error(`Unsupported file type "${file.type}"`);
+        }
     }
 
-    private async loadImage() {
-        const image = await Bitmap.create(sampleImage);
+    private async loadImage(file?: File) {
+        const image = await (file
+            ? Bitmap.fromFile(file)
+            : Bitmap.fromUrl(sampleImage));
         this.setState({ image });
     }
 
@@ -120,5 +109,29 @@ class App extends React.Component<{}, AppState> {
         await Promise.resolve(this.findAdjacencies());
     }
 }
+
+const style = StyleSheet.create({
+    page: {
+        position: "absolute",
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        display: "flex",
+    },
+    actionPanel: {
+        width: 300,
+        borderRight: "1px solid #A0A0A0",
+        backgroundColor: "#EEEEEE",
+    },
+    contentPanel: {
+        flexGrow: 1,
+    },
+    contextPanel: {
+        width: 200,
+        borderLeft: "1px solid #A0A0A0",
+        backgroundColor: "#EEEEEE",
+    },
+});
 
 export default App;

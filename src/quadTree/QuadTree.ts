@@ -25,4 +25,4 @@ export interface DegenerateRegion extends QuadTreeRegion {
     readonly variant: "degenerate";
 }
 
-//!! path: an array of CornerPosition
+// TODO path: an array of CornerPosition

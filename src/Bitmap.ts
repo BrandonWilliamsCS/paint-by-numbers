@@ -24,7 +24,14 @@ export class Bitmap {
         );
     }
 
-    public static async create(url: string): Promise<Bitmap> {
+    public static async fromFile(file: File): Promise<Bitmap> {
+        const arrayBuffer = await arrayBufferFromFile(file);
+        const nodeBuffer = Buffer.from(arrayBuffer);
+        const bmp = BMP.decode(nodeBuffer);
+        return new Bitmap(bmp);
+    }
+
+    public static async fromUrl(url: string): Promise<Bitmap> {
         return new Promise<Bitmap>(resolve => {
             const oReq = new XMLHttpRequest();
             oReq.open("GET", url, true);
@@ -40,4 +47,14 @@ export class Bitmap {
             oReq.send(null);
         });
     }
+}
+
+async function arrayBufferFromFile(file: File): Promise<ArrayBuffer> {
+    return new Promise<ArrayBuffer>(resolve => {
+        const reader = new FileReader();
+        reader.onload = function() {
+            resolve(this.result);
+        };
+        reader.readAsArrayBuffer(file);
+    });
 }

@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { Color } from "../Color";
 import { Position } from "../Position";
-import { flattenAdjacencies, TreeAdjacencyMap } from "./findAdjacencies";
+import { flattenAdjacencies, TreeAdjacencyMap } from "./Adjacencies";
 
 export interface DrawAdjacenciesProps<T> {
     adjacencies: TreeAdjacencyMap<Color>;
