@@ -1,9 +1,13 @@
 import { css, StyleSheet } from "aphrodite";
 import * as React from "react";
 
+import { MenuPanel } from "./MenuPanel";
+
 export interface MainMenuProps {
     isProjectLoaded: boolean;
     onFileUpload: (file: File) => void;
+    onBrowserSave: () => void;
+    onFileSave: () => void;
     //!! DEBUG
     onDebug: () => void;
 }
@@ -21,29 +25,35 @@ export class MainMenu extends React.Component<MainMenuProps, MainMenuState> {
     }
 
     public render() {
+        // TODO: better save/load
         return (
             <div className={css(style.mainMenu)}>
-                <MenuPanel>
-                    {this.props.isProjectLoaded ? (
-                        <button>Save</button>
-                    ) : (
-                        <>
-                            <h3>Upload Image or Project File</h3>
-                            <input
-                                type="file"
-                                onChange={this.handleFileLoad}
-                                accept=".bmp,.pbn"
-                            />
-                            <button
-                                onClick={this.handleFileConfirm}
-                                disabled={!this.state.selectedFile}
-                            >
-                                Start
-                            </button>
-                            <button onClick={this.props.onDebug}>DEBUG</button>
-                        </>
-                    )}
-                </MenuPanel>
+                {this.props.isProjectLoaded && (
+                    <MenuPanel title="Save">
+                        <button onClick={this.props.onBrowserSave}>
+                            Save in Browser
+                        </button>
+                        <button onClick={this.props.onFileSave}>
+                            Save to File
+                        </button>
+                    </MenuPanel>
+                )}
+                {!this.props.isProjectLoaded && (
+                    <MenuPanel title="Upload Image or Project File">
+                        <input
+                            type="file"
+                            onChange={this.handleFileLoad}
+                            accept=".bmp,.pbn"
+                        />
+                        <button
+                            onClick={this.handleFileConfirm}
+                            disabled={!this.state.selectedFile}
+                        >
+                            Start
+                        </button>
+                        <button onClick={this.props.onDebug}>DEBUG</button>
+                    </MenuPanel>
+                )}
             </div>
         );
     }
@@ -68,17 +78,13 @@ const style = StyleSheet.create({
     mainMenu: {
         width: "100%",
         height: "100%",
+        padding: "8px",
         display: "flex",
         flexDirection: "column",
         overflowY: "auto",
     },
     menuPanel: {
         padding: "8px",
-        margin: "8px",
-        backgroundColor: "#DDDDDD",
+        backgroundColor: "rgba(0,0,0,0.1)",
     },
 });
-
-function MenuPanel({ children }: { children: React.ReactNode }): JSX.Element {
-    return <div className={css(style.menuPanel)}>{children}</div>;
-}

@@ -13,7 +13,7 @@ import { QuadTree } from "./quadTree/QuadTree";
 import { Region } from "./Region";
 
 import "./App.css";
-import { MainMenu } from "./layout/MainMenu";
+import { MainMenu } from "./layout/menu/MainMenu";
 import { Workspace } from "./layout/Workspace";
 import sampleImage from "./sample-large.bmp";
 
@@ -32,6 +32,8 @@ class App extends React.Component<{}, AppState> {
             adjacencies: undefined,
         };
         this.handleFileLoad = this.handleFileLoad.bind(this);
+        this.handleBrowserSave = this.handleBrowserSave.bind(this);
+        this.handleFileSave = this.handleFileSave.bind(this);
         this.shortcut = this.shortcut.bind(this);
         this.loadImage = this.loadImage.bind(this);
         this.createTree = this.createTree.bind(this);
@@ -44,6 +46,8 @@ class App extends React.Component<{}, AppState> {
                     <MainMenu
                         isProjectLoaded={!!this.state.tree}
                         onFileUpload={this.handleFileLoad}
+                        onBrowserSave={this.handleBrowserSave}
+                        onFileSave={this.handleFileSave}
                         //!! DEBUG
                         onDebug={this.shortcut}
                     />
@@ -61,6 +65,7 @@ class App extends React.Component<{}, AppState> {
 
     private async handleFileLoad(file: File) {
         //!! extract file/storage logic
+        //!! loading indicator
         if (file.type === "image/bmp") {
             await this.loadImage(file);
             this.createTree();
@@ -69,6 +74,15 @@ class App extends React.Component<{}, AppState> {
             //!! pbn file
             throw new Error(`Unsupported file type "${file.type}"`);
         }
+    }
+
+    private handleBrowserSave() {
+        //!!
+        console.log("saved");
+    }
+    private handleFileSave() {
+        //!!
+        console.log("saved");
     }
 
     private async loadImage(file?: File) {
@@ -120,14 +134,17 @@ const style = StyleSheet.create({
         display: "flex",
     },
     actionPanel: {
+        flexShrink: 0,
         width: 300,
         borderRight: "1px solid #A0A0A0",
         backgroundColor: "#EEEEEE",
     },
     contentPanel: {
         flexGrow: 1,
+        overflow: "scroll",
     },
     contextPanel: {
+        flexShrink: 0,
         width: 200,
         borderLeft: "1px solid #A0A0A0",
         backgroundColor: "#EEEEEE",
