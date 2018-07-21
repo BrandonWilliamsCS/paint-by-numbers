@@ -11,7 +11,10 @@ export class Bitmap {
         return this.bmp.height;
     }
 
-    constructor(private readonly bmp: BMP.Bitmap) {}
+    constructor(
+        private readonly bmp: BMP.Bitmap,
+        public readonly fileName?: string,
+    ) {}
 
     public colorAt(x: number, y: number): Color {
         const linearOffset = this.bmp.width * y + x;
@@ -28,7 +31,7 @@ export class Bitmap {
         const arrayBuffer = await arrayBufferFromFile(file);
         const nodeBuffer = Buffer.from(arrayBuffer);
         const bmp = BMP.decode(nodeBuffer);
-        return new Bitmap(bmp);
+        return new Bitmap(bmp, file.name);
     }
 
     public static async fromUrl(url: string): Promise<Bitmap> {

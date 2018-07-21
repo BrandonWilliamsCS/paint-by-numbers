@@ -1,16 +1,14 @@
 import * as React from "react";
 
 import { Color } from "../Color";
-import { QuadTree } from "../quadTree/QuadTree";
+import { Project } from "../project/Project";
 
 import { ColorRegion } from "../ColorRegion";
-import { TreeAdjacencyMap } from "../quadTree/Adjacencies";
 import { DrawAdjacencies } from "../quadTree/DrawAdjacencies";
 import { QuadTreePreview } from "../quadTree/QuadTreePreview";
 
 export interface WorkspaceProps {
-    tree: QuadTree<Color> | undefined;
-    adjacencies: TreeAdjacencyMap<Color> | undefined;
+    project: Project;
 }
 
 export class Workspace extends React.Component<WorkspaceProps> {
@@ -18,9 +16,10 @@ export class Workspace extends React.Component<WorkspaceProps> {
         super(props);
     }
     public render() {
+        const project = this.props.project;
         return (
             <div className="Canvas">
-                {this.props.tree && (
+                {project.image.tree && (
                     <div
                         style={{
                             position: "relative",
@@ -28,12 +27,12 @@ export class Workspace extends React.Component<WorkspaceProps> {
                         }}
                     >
                         <QuadTreePreview
-                            tree={this.props.tree}
+                            tree={project.image.tree}
                             contentRenderer={this.renderColor}
                         />
-                        {this.props.adjacencies && (
+                        {project.image.adjacencies && (
                             <DrawAdjacencies
-                                adjacencies={this.props.adjacencies}
+                                adjacencies={project.image.adjacencies}
                                 color={"black"}
                                 thickness={2}
                             />

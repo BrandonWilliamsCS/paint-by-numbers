@@ -8,7 +8,7 @@ export interface MainMenuProps {
     onFileUpload: (file: File) => void;
     onBrowserSave: () => void;
     onFileSave: () => void;
-    //!! DEBUG
+    // DEBUG
     onDebug: () => void;
 }
 
