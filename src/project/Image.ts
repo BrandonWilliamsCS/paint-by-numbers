@@ -45,7 +45,6 @@ export namespace Image {
         bitmap: Bitmap,
         tree: QuadTree<Color>,
     ): TreeAdjacencyMap<Color> {
-        //!! sort by coordinates, then consolidate as possible.
         const adjacencies = findBaseAdjacencies(tree);
         sanityCheckAdjacencies(tree, adjacencies, bitmap.width, bitmap.height);
         return adjacencies;

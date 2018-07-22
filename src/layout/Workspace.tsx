@@ -5,6 +5,7 @@ import { Project } from "../project/Project";
 
 import { ColorRegion } from "../ColorRegion";
 import { DrawAdjacencies } from "../quadTree/DrawAdjacencies";
+import { DrawBoundries } from "../quadTree/DrawBoundries";
 import { QuadTreePreview } from "../quadTree/QuadTreePreview";
 
 export interface WorkspaceProps {
@@ -30,13 +31,11 @@ export class Workspace extends React.Component<WorkspaceProps> {
                             tree={project.image.tree}
                             contentRenderer={this.renderColor}
                         />
-                        {project.image.adjacencies && (
-                            <DrawAdjacencies
-                                adjacencies={project.image.adjacencies}
-                                color={"black"}
-                                thickness={2}
-                            />
-                        )}
+                        <DrawBoundries
+                            boundries={project.boundries.boundrySegments}
+                            color={"black"}
+                            thickness={2}
+                        />
                     </div>
                 )}
             </div>

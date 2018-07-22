@@ -48,7 +48,7 @@ class App extends React.Component<{}, AppState> {
     }
 
     private async handleFileLoad(file: File) {
-        //!! loading indicator
+        // TODO: loading indicator
         const project = await Storage.processFile(file);
         this.setState({ project });
     }
