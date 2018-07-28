@@ -4,7 +4,6 @@ import { Color } from "../Color";
 import { Project } from "../project/Project";
 
 import { ColorRegion } from "../ColorRegion";
-import { DrawAdjacencies } from "../quadTree/DrawAdjacencies";
 import { DrawBoundries } from "../quadTree/DrawBoundries";
 import { QuadTreePreview } from "../quadTree/QuadTreePreview";
 

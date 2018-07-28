@@ -12,7 +12,8 @@
         "forceConsistentCasingInFileNames": true,
         "strict": true,
         "noImplicitReturns": true,
-        "noUnusedLocals": true
+        "noUnusedLocals": true,
+        "allowSyntheticDefaultImports": true
     },
     "exclude": [
         "node_modules",
