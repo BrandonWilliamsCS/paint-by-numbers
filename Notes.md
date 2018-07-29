@@ -7,9 +7,9 @@
     1. happens automatically after upload
 1. generation of outline corner points
     1. automatic, followed by user tweaking
-1. grouping of boundries into segments
-    1. results in a list of (optionally named) segments, represented by
-    sets of adjacency edges
+1. grouping of boundries into pieces
+    1. results in a list of (optionally named) pieces, represented by
+    sets of adjacency edge chains
 1. generation of bezier outlines
     1. will erase any existing outline approximations
 1. user placement of secondary dividers
@@ -17,6 +17,16 @@
 1. computation of sections
 1. pallette and number assignment
 1. svg generation (may happen earlier, if conditions are met)
+
+## Dependency order
+
+1. boundry segments (image)
+1. corners (boundry segments, user input)
+1. boundry pieces
+    1. chains (boundry segments, corners)
+    1. simplified chains (boundry piece chains, user-specified tolerance?)
+    1. curve approximation (simplified chains, user-tweaked control points)
+1. Additional curves (purely user-based but with some kind of snap to existing curve feature)
 
 # Elements constraints
 
