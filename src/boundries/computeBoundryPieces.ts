@@ -1,4 +1,5 @@
 import Deque from "denque";
+import simplifyChainArray from "simplify-js";
 
 import { Point } from "../Geometry";
 import { BoundryPiece } from "./BoundryPiece";
@@ -12,10 +13,18 @@ export function computeCornerPoints(graph: PointGraph): Point[] {
     );
 }
 
-export function computeBoundryChains(
+export function computeBoundryPieces(
     fullGraph: PointGraph,
     cornerPoints: Point[],
 ): BoundryPiece[] {
+    const chains = computeBoundryChains(fullGraph, cornerPoints);
+    return convertToBoundryPieces(chains);
+}
+
+export function computeBoundryChains(
+    fullGraph: PointGraph,
+    cornerPoints: Point[],
+): Array<Deque<Point>> {
     // Work with a clone since we'll be modifying this one.
     const graph = fullGraph.clone();
 
@@ -42,7 +51,6 @@ export function computeBoundryChains(
 
     // At this point, all of the corners have been consumed.
     // But, there may be some no-corner closed-loops.
-    const closedLoopChains: Array<Deque<Point>> = [];
     while (!graph.isEmpty) {
         // This algorithm is similar, but start at an arbitrary point in each loop.
         const startingLoopPoint = graph.getSinglePoint();
@@ -53,10 +61,9 @@ export function computeBoundryChains(
             loop.push(nextPoint);
             // but this time the end condition is when the loop completes.
         } while (loop.peekBack() !== startingLoopPoint);
-        closedLoopChains.push(loop);
+        completeChains.push(loop);
     }
-
-    return convertToBoundryPieces(completeChains, closedLoopChains);
+    return completeChains;
 }
 
 function extractNextPoint(point: Point, graph: PointGraph): Point {
@@ -65,18 +72,33 @@ function extractNextPoint(point: Point, graph: PointGraph): Point {
     return nextPoint;
 }
 
-function convertToBoundryPieces(
-    openChains: Array<Deque<Point>>,
-    closedChains: Array<Deque<Point>>,
-): BoundryPiece[] {
-    return [
-        ...openChains.map(chain => ({
-            isLoop: false,
+function convertToBoundryPieces(chains: Array<Deque<Point>>): BoundryPiece[] {
+    return chains.map(chain => {
+        // TODO: allow custom
+        const simplificationTolerance = 1;
+        const simplifiedChain = simplifyChain(chain, simplificationTolerance);
+        console.log(
+            `Chain simplified from ${chain.length} to ${
+                simplifiedChain.length
+            }`,
+        );
+        return {
+            isLoop: chain.peekBack() === chain.peekFront(),
             chain,
-        })),
-        ...closedChains.map(chain => ({
-            isLoop: true,
-            chain,
-        })),
-    ];
+            simplifiedChain,
+        };
+    });
+}
+
+function simplifyChain(
+    chain: Deque<Point>,
+    simplificationTolerance?: number,
+): Deque<Point> {
+    const chainArray = chain.toArray();
+    const simplifiedChainArray = simplifyChainArray(
+        chainArray,
+        simplificationTolerance,
+        true, // TODO: pros and cons of "high quality"
+    );
+    return new Deque(simplifiedChainArray);
 }

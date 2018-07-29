@@ -1,7 +1,7 @@
 import { BoundryPiece } from "../boundries/BoundryPiece";
 import { BoundrySegment } from "../boundries/BoundrySegment";
 import {
-    computeBoundryChains,
+    computeBoundryPieces,
     computeCornerPoints,
 } from "../boundries/computeBoundryPieces";
 import { computeSortedBoundries } from "../boundries/computeSortedBoundries";
@@ -24,7 +24,7 @@ export namespace Boundries {
         const boundrySegments = computeSortedBoundries(image.adjacencies);
         const boundryGraph = computeFromBoundrySegments(boundrySegments);
         const cornerPoints = computeCornerPoints(boundryGraph);
-        const boundryPieces = computeBoundryChains(boundryGraph, cornerPoints);
+        const boundryPieces = computeBoundryPieces(boundryGraph, cornerPoints);
         return {
             boundrySegments,
             boundryGraph,
