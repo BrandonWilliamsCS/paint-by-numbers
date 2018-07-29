@@ -4,17 +4,22 @@ import { Point } from "../Geometry";
 import { BoundryPiece } from "./BoundryPiece";
 import { PointGraph } from "./PointGraph";
 
-export function computeBoundryChains(fullGraph: PointGraph): BoundryPiece[] {
+export function computeCornerPoints(graph: PointGraph): Point[] {
+    // By definition, points with 3+ connected are corners.
+    // But points with a single adjacency are dead-end corners, too.
+    return graph.points.filter(
+        point => graph.getAdjacentPoints(point).length !== 2,
+    );
+}
+
+export function computeBoundryChains(
+    fullGraph: PointGraph,
+    cornerPoints: Point[],
+): BoundryPiece[] {
     // Work with a clone since we'll be modifying this one.
     const graph = fullGraph.clone();
 
-    // By definition, points with 3+ connected are corners.
-    // But points with a single adjacency are dead-end corners, too.
-    const cornerPoints = graph.points.filter(
-        point => graph.getAdjacentPoints(point).length !== 2,
-    );
-
-    // Now work through the list of corner points.
+    // Work through the list of corner points.
     // Start at one, working through 0+ non-corner points, eventually reaching
     //  another (or looping to the same).
     // Along the way, clear the graph to simplify everything.
