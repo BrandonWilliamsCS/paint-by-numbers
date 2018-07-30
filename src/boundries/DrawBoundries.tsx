@@ -1,16 +1,14 @@
 import * as React from "react";
 
-import { BoundrySegment } from "../boundries/BoundrySegment";
+import { BoundrySegment } from "./BoundrySegment";
 
-export interface DrawBoundriesProps<T> {
+export interface DrawBoundriesProps {
     boundries: BoundrySegment[];
     color?: string;
     thickness?: number;
 }
 
-export class DrawBoundries<T> extends React.PureComponent<
-    DrawBoundriesProps<T>
-> {
+export class DrawBoundries extends React.PureComponent<DrawBoundriesProps> {
     public render(): JSX.Element | null {
         const thickness = this.props.thickness || 1;
         const expand = Math.ceil(thickness / 2);

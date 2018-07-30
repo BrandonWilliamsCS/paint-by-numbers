@@ -75,13 +75,8 @@ function extractNextPoint(point: Point, graph: PointGraph): Point {
 function convertToBoundryPieces(chains: Array<Deque<Point>>): BoundryPiece[] {
     return chains.map(chain => {
         // TODO: allow custom
-        const simplificationTolerance = 1;
+        const simplificationTolerance = 2;
         const simplifiedChain = simplifyChain(chain, simplificationTolerance);
-        console.log(
-            `Chain simplified from ${chain.length} to ${
-                simplifiedChain.length
-            }`,
-        );
         return {
             isLoop: chain.peekBack() === chain.peekFront(),
             chain,

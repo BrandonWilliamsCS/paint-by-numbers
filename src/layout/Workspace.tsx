@@ -3,8 +3,8 @@ import * as React from "react";
 import { Color } from "../Color";
 import { Project } from "../project/Project";
 
+import { DrawBoundryPieces } from "../boundries/DrawBoundryPieces";
 import { ColorRegion } from "../ColorRegion";
-import { DrawBoundries } from "../quadTree/DrawBoundries";
 import { QuadTreePreview } from "../quadTree/QuadTreePreview";
 
 export interface WorkspaceProps {
@@ -30,9 +30,11 @@ export class Workspace extends React.Component<WorkspaceProps> {
                             tree={project.image.tree}
                             contentRenderer={this.renderColor}
                         />
-                        <DrawBoundries
-                            boundries={project.boundries.boundrySegments}
-                            color={"black"}
+                        <LayerDivider />
+                        <DrawBoundryPieces
+                            boundryPieces={project.boundries.boundryPieces}
+                            imageWidth={project.image.width}
+                            imageHeight={project.image.height}
                             thickness={2}
                         />
                     </div>
@@ -44,4 +46,19 @@ export class Workspace extends React.Component<WorkspaceProps> {
     public renderColor(color: Color): JSX.Element {
         return <ColorRegion color={color} />;
     }
+}
+
+export function LayerDivider() {
+    return (
+        <div
+            style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                bottom: 0,
+                right: 0,
+                backgroundColor: "RGBA(255, 255, 255, 0.5)",
+            }}
+        />
+    );
 }
