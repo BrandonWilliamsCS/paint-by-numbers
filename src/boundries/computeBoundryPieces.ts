@@ -5,9 +5,9 @@ import { Point } from "../Geometry";
 import { BoundryPiece } from "./BoundryPiece";
 import { PointGraph } from "./PointGraph";
 
-export function computeCornerPoints(graph: PointGraph): Point[] {
-    // By definition, points with 3+ connected are corners.
-    // But points with a single adjacency are dead-end corners, too.
+export function computeIntersectionPoints(graph: PointGraph): Point[] {
+    // By definition, points with 3+ connected are intersections.
+    // But points with a single adjacency are dead-end intersections, too.
     return graph.points.filter(
         point => graph.getAdjacentPoints(point).length !== 2,
     );
@@ -15,42 +15,42 @@ export function computeCornerPoints(graph: PointGraph): Point[] {
 
 export function computeBoundryPieces(
     fullGraph: PointGraph,
-    cornerPoints: Point[],
+    intersectionPoints: Point[],
 ): BoundryPiece[] {
-    const chains = computeBoundryChains(fullGraph, cornerPoints);
+    const chains = computeBoundryChains(fullGraph, intersectionPoints);
     return convertToBoundryPieces(chains);
 }
 
 export function computeBoundryChains(
     fullGraph: PointGraph,
-    cornerPoints: Point[],
+    intersectionPoints: Point[],
 ): Array<Deque<Point>> {
     // Work with a clone since we'll be modifying this one.
     const graph = fullGraph.clone();
 
-    // Work through the list of corner points.
-    // Start at one, working through 0+ non-corner points, eventually reaching
-    //  another (or looping to the same).
+    // Work through the list of intersection points.
+    // Start at one, working through 0+ non-intersection points, eventually
+    //  reaching another (or looping to the same).
     // Along the way, clear the graph to simplify everything.
     const completeChains: Array<Deque<Point>> = [];
-    cornerPoints.forEach(startingCornerPoint => {
+    intersectionPoints.forEach(startingIntersectionPoint => {
         // Make sure to process every chain emanating from this point.
-        // This also addresses corners that were reached from the other end.
-        while (graph.hasPoint(startingCornerPoint)) {
-            const chain = new Deque([startingCornerPoint]);
+        // This also addresses intersections that were reached from the other end.
+        while (graph.hasPoint(startingIntersectionPoint)) {
+            const chain = new Deque([startingIntersectionPoint]);
             do {
                 const currentPoint = chain.peekBack()!;
                 const nextPoint = extractNextPoint(currentPoint, graph);
                 chain.push(nextPoint);
-                // Keep going until a corner was added.
+                // Keep going until an intersection was added.
                 // Interestingly, this may form a loop in some cases.
-            } while (cornerPoints.indexOf(chain.peekBack()!) === -1);
+            } while (intersectionPoints.indexOf(chain.peekBack()!) === -1);
             completeChains.push(chain);
         }
     });
 
-    // At this point, all of the corners have been consumed.
-    // But, there may be some no-corner closed-loops.
+    // At this point, all of the intersections have been consumed.
+    // But, there may be some no-intersection closed-loops.
     while (!graph.isEmpty) {
         // This algorithm is similar, but start at an arbitrary point in each loop.
         const startingLoopPoint = graph.getSinglePoint();

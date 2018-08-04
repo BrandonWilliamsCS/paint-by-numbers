@@ -2,7 +2,7 @@ import { BoundryPiece } from "../boundries/BoundryPiece";
 import { BoundrySegment } from "../boundries/BoundrySegment";
 import {
     computeBoundryPieces,
-    computeCornerPoints,
+    computeIntersectionPoints,
 } from "../boundries/computeBoundryPieces";
 import { computeSortedBoundries } from "../boundries/computeSortedBoundries";
 import {
@@ -15,7 +15,7 @@ import { Image } from "./Image";
 export interface Boundries {
     boundrySegments: BoundrySegment[];
     boundryGraph: PointGraph;
-    cornerPoints: Point[];
+    intersectionPoints: Point[];
     boundryPieces: BoundryPiece[];
 }
 
@@ -23,12 +23,15 @@ export namespace Boundries {
     export function create(image: Image) {
         const boundrySegments = computeSortedBoundries(image.adjacencies);
         const boundryGraph = computeFromBoundrySegments(boundrySegments);
-        const cornerPoints = computeCornerPoints(boundryGraph);
-        const boundryPieces = computeBoundryPieces(boundryGraph, cornerPoints);
+        const intersectionPoints = computeIntersectionPoints(boundryGraph);
+        const boundryPieces = computeBoundryPieces(
+            boundryGraph,
+            intersectionPoints,
+        );
         return {
             boundrySegments,
             boundryGraph,
-            cornerPoints,
+            intersectionPoints,
             boundryPieces,
         };
     }
