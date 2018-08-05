@@ -6,7 +6,7 @@ import {
 } from "../boundries/computeBoundryPieces";
 import { computeSortedBoundries } from "../boundries/computeSortedBoundries";
 import {
-    computeFromBoundrySegments,
+    computeGraphFromBoundrySegments,
     PointGraph,
 } from "../boundries/PointGraph";
 import { Point } from "../Geometry";
@@ -22,7 +22,7 @@ export interface Boundries {
 export namespace Boundries {
     export function create(image: Image) {
         const boundrySegments = computeSortedBoundries(image.adjacencies);
-        const boundryGraph = computeFromBoundrySegments(boundrySegments);
+        const boundryGraph = computeGraphFromBoundrySegments(boundrySegments);
         const intersectionPoints = computeIntersectionPoints(boundryGraph);
         const boundryPieces = computeBoundryPieces(
             boundryGraph,

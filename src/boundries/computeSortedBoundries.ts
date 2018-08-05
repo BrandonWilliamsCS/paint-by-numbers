@@ -15,7 +15,7 @@ export function computeSortedBoundries(
 ): BoundrySegment[] {
     const flatAdjacencies = flattenAdjacencies(adjacencies);
     const boundrySegments = computeBoundriesFromPairs(flatAdjacencies);
-    return normalizeBoundrySegments(boundrySegments);
+    return consolidateBoundrySegments(boundrySegments);
 }
 
 export function computeBoundriesFromPairs(
@@ -77,7 +77,7 @@ export function computeBoundriesFromPairs(
         .filter(x => x);
 }
 
-export function normalizeBoundrySegments(
+export function consolidateBoundrySegments(
     rawSegments: BoundrySegment[],
 ): BoundrySegment[] {
     // Split into horizontal and vertical for convenience.
@@ -86,13 +86,13 @@ export function normalizeBoundrySegments(
         rawSegment => rawSegment.segment.start.y === rawSegment.segment.end.y,
     );
 
-    const normalizedHorizontal = normalizeHorizontal(horizontalSegments);
-    const normalizedVertical = normalizeVertical(verticalSegments);
+    const consolidatedHorizontal = consolidateHorizontal(horizontalSegments);
+    const consolidatedVertical = consolidateVertical(verticalSegments);
 
-    return [...normalizedHorizontal, ...normalizedVertical];
+    return [...consolidatedHorizontal, ...consolidatedVertical];
 }
 
-function normalizeHorizontal(horizontalSegments: BoundrySegment[]) {
+function consolidateHorizontal(horizontalSegments: BoundrySegment[]) {
     // The next step is easiest when they're sorted so that "end-to-end" pieces
     //  sit adjancent in the array.
     horizontalSegments.sort((a, b) => a.segment.start.x - b.segment.start.x);
@@ -108,7 +108,7 @@ function normalizeHorizontal(horizontalSegments: BoundrySegment[]) {
             )}:${boundrySegment.beforeColor.toHexString()}/${boundrySegment.afterColor.toHexString()}`,
     );
     // Now it's just a matter of seeing of there is gap or not.
-    const normalizedHorizontal: BoundrySegment[] = [];
+    const consolidatedHorizontal: BoundrySegment[] = [];
     _.forEach(groupedHorizontal, group => {
         let lastAdded: BoundrySegment | undefined;
         group.forEach(boundrySegment => {
@@ -121,16 +121,16 @@ function normalizeHorizontal(horizontalSegments: BoundrySegment[]) {
                 // Beware the modification of existing objects, though.
                 lastAdded.segment.end.x = boundrySegment.segment.end.x;
             } else {
-                normalizedHorizontal.push(boundrySegment);
+                consolidatedHorizontal.push(boundrySegment);
                 lastAdded = boundrySegment;
             }
         });
     });
 
-    return normalizedHorizontal;
+    return consolidatedHorizontal;
 }
 
-function normalizeVertical(verticalSegments: BoundrySegment[]) {
+function consolidateVertical(verticalSegments: BoundrySegment[]) {
     // Vertical is basically just Horizontal with an axis flip.
     verticalSegments.sort((a, b) => a.segment.start.y - b.segment.start.y);
     const groupedVertical = _.groupBy(
@@ -141,7 +141,7 @@ function normalizeVertical(verticalSegments: BoundrySegment[]) {
                 -5,
             )}:${boundrySegment.beforeColor.toHexString()}/${boundrySegment.afterColor.toHexString()}`,
     );
-    const normalizedVertical: BoundrySegment[] = [];
+    const consolidatedVertical: BoundrySegment[] = [];
     _.forEach(groupedVertical, group => {
         let lastAdded: BoundrySegment | undefined;
         group.forEach(boundrySegment => {
@@ -151,11 +151,11 @@ function normalizeVertical(verticalSegments: BoundrySegment[]) {
             ) {
                 lastAdded.segment.end.y = boundrySegment.segment.end.y;
             } else {
-                normalizedVertical.push(boundrySegment);
+                consolidatedVertical.push(boundrySegment);
                 lastAdded = boundrySegment;
             }
         });
     });
 
-    return normalizedVertical;
+    return consolidatedVertical;
 }

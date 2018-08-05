@@ -129,7 +129,7 @@ export class PointGraph {
     }
 }
 
-export function computeFromBoundrySegments(
+export function computeGraphFromBoundrySegments(
     boundrySegments: BoundrySegment[],
 ): PointGraph {
     const segments = boundrySegments.map(bs => bs.segment);
