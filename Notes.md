@@ -105,8 +105,6 @@ Loop until acceptable:
 1. [Paper discussing curve fitting](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.96.5193&rep=rep1&type=pdf)
 
 # Make sure to do...
-add midpoints to chains
-    - number of pieces = ceil(length/5) + 1
 need to find cusp points
     - look at angle of simplified curve
     - smaller segments are less sensitive to a sharp angle

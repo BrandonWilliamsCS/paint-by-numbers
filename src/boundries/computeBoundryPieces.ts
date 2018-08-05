@@ -41,7 +41,7 @@ export function computeBoundryChains(
             do {
                 const currentPoint = chain.peekBack()!;
                 const nextPoint = extractNextPoint(currentPoint, graph);
-                chain.push(nextPoint);
+                addPointsFromSegment(chain, currentPoint, nextPoint);
                 // Keep going until an intersection was added.
                 // Interestingly, this may form a loop in some cases.
             } while (intersectionPoints.indexOf(chain.peekBack()!) === -1);
@@ -58,7 +58,7 @@ export function computeBoundryChains(
         do {
             const currentPoint = loop.peekBack()!;
             const nextPoint = extractNextPoint(currentPoint, graph);
-            loop.push(nextPoint);
+            addPointsFromSegment(loop, currentPoint, nextPoint);
             // but this time the end condition is when the loop completes.
         } while (loop.peekBack() !== startingLoopPoint);
         completeChains.push(loop);
@@ -70,6 +70,29 @@ function extractNextPoint(point: Point, graph: PointGraph): Point {
     const nextPoint = graph.getAdjacentPoint(point);
     graph.removeEdge(point, nextPoint);
     return nextPoint;
+}
+
+function addPointsFromSegment(chain: Deque<Point>, start: Point, end: Point) {
+    // Always add at least one point in the middle; but for long segments,
+    //  subdivide into pieces of length 5 or less.
+    // This allows for better curve fitting.
+    const isXDimension = start.y === end.y;
+    const length = isXDimension ? end.x - start.x : end.y - start.y;
+    const subdivisionCount = Math.ceil(length / 5) + 1;
+    const adjustment = length / subdivisionCount;
+
+    // add any and all points along the way from start to end.
+    for (let i = 1; i < subdivisionCount; i++) {
+        const cumulativeAdjustment = adjustment * i;
+        const nextPoint = Point.from(
+            isXDimension ? start.x + cumulativeAdjustment : start.x,
+            isXDimension ? start.y : start.y + cumulativeAdjustment,
+        );
+        chain.push(nextPoint);
+    }
+    // Make sure to use the exact endpoint passed in; it may be used in
+    //  an identity comparison.
+    chain.push(end);
 }
 
 function convertToBoundryPieces(chains: Array<Deque<Point>>): BoundryPiece[] {
