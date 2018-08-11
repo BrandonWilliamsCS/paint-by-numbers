@@ -36,6 +36,7 @@ export class Workspace extends React.Component<WorkspaceProps> {
                             imageWidth={project.image.width}
                             imageHeight={project.image.height}
                             thickness={2}
+                            compareToExact
                         />
                     </div>
                 )}

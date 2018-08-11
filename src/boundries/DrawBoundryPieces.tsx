@@ -1,3 +1,4 @@
+import Bezier from "bezier-js";
 import Deque from "denque";
 import * as React from "react";
 
@@ -10,7 +11,9 @@ export interface DrawBoundryPiecesProps {
     imageWidth: number;
     imageHeight: number;
     thickness?: number;
-    mode?: "show-pieces" | "compare-to-exact" | "basic";
+    showPieces?: boolean;
+    compareToExact?: boolean;
+    mode?: "curves" | "lines";
 }
 
 export class DrawBoundryPieces extends React.PureComponent<
@@ -44,6 +47,26 @@ export class DrawBoundryPieces extends React.PureComponent<
         );
     }
 
+    public renderBoundryCurve(
+        piecewiseCurve: Bezier[],
+        thickness: number,
+        color: string,
+    ) {
+        return (
+            <g>
+                {piecewiseCurve.map(bezier => (
+                    <path
+                        d={this.computePathInstructions(bezier)}
+                        fill="none"
+                        stroke={color}
+                        strokeWidth={thickness}
+                        key={Point.toString(bezier.point(0))}
+                    />
+                ))}
+            </g>
+        );
+    }
+
     public render(): JSX.Element | null {
         const thickness = this.props.thickness || 2;
         return (
@@ -67,26 +90,46 @@ export class DrawBoundryPieces extends React.PureComponent<
                         boundryPiece.chain.peekAt(0)!,
                     )}-${Point.toString(boundryPiece.chain.peekAt(1)!)}-...`;
                     let color = "#000000";
-                    if (this.props.mode === "show-pieces") {
+                    if (this.props.showPieces) {
                         color = "#" + Color.getSequenceColor(i).toHexString();
                     }
                     return (
                         <React.Fragment key={chainKey}>
-                            {this.props.mode === "compare-to-exact" &&
+                            {this.props.compareToExact &&
                                 this.renderBoundryChain(
                                     boundryPiece.chain,
                                     thickness + 1,
                                     "#FF0000",
                                 )}
-                            {this.renderBoundryChain(
-                                boundryPiece.simplifiedChain,
-                                thickness,
-                                color,
-                            )}
+                            {this.props.mode === "lines"
+                                ? this.renderBoundryChain(
+                                      boundryPiece.simplifiedChain,
+                                      thickness,
+                                      color,
+                                  )
+                                : this.renderBoundryCurve(
+                                      boundryPiece.piecewiseBezier,
+                                      thickness,
+                                      color,
+                                  )}
                         </React.Fragment>
                     );
                 })}
             </svg>
         );
+    }
+
+    // TODO: dedicated bezier rendering
+    public computePathInstructions(bezier: Bezier): string {
+        return `
+            M ${this.stringifyForPath(bezier.point(0))}
+            C ${this.stringifyForPath(bezier.point(1))} ${this.stringifyForPath(
+            bezier.point(2),
+        )} ${this.stringifyForPath(bezier.point(3))}
+        `;
+    }
+
+    public stringifyForPath(point: Point): string {
+        return `${point.x.toFixed(2)},${point.y.toFixed(2)}`;
     }
 }
