@@ -27,9 +27,11 @@ function addBaseAdjacencies<T>(
     incomingAdjacencies: TreeAdjacencies<T>,
     adjacenciesSoFar: TreeAdjacencyMap<T>,
 ): void {
-    // This is where the "base" part comes in. We only record the adjacencies
-    //  for the leaf nodes of the tree.
-    if (tree.variant !== "heterogeneous") {
+    if (tree.variant === "degenerate") {
+        return;
+    } else if (tree.variant === "homogeneous") {
+        // This is where the "base" part comes in. We only record the
+        //  adjacencies for the leaf nodes of the tree.
         adjacenciesSoFar.set(tree, incomingAdjacencies);
         return;
     }
@@ -50,8 +52,6 @@ function findSubtreeAdjacencies<T>(
     parentAdjacencies: TreeAdjacencies<T>,
 ): TreeAdjacencies<T> {
     const adjacencyEntries = [
-        // for the internal sides, just take the other subtree on the corner
-        //  that is on that side.
         ...Position.sides.map(side => {
             const adjacencyOnSide = findSubtreeAdjacencyOnSide<T>(
                 tree,
@@ -90,7 +90,7 @@ function findSubtreeAdjacencyOnSide<T>(
     // Now we know that the closest corner in the direction
     //  of `side` is internal.
     // In our TopLeft example, the adjacentCornerOnSide
-    //  with a side of Left is TopRight,
+    //  with a side of Right is TopRight,
     //  with a side of Bottom is BottomLeft, etc.
     const adjacentCornerOnSide = Position.afterMovingTowards(
         subtreeCorner,
@@ -168,9 +168,11 @@ export function sanityCheckAdjacencies<T>(
     imageHeight: number,
 ) {
     adjacencyMap.forEach((adjacencies, from) => {
-        if (from.variant === "heterogeneous") {
+        if (from.variant !== "homogeneous") {
             throw new Error(
-                "het. tree in adj map: " + JSON.stringify(from.region),
+                `invalid (${from.variant}) tree in adj map: ${JSON.stringify(
+                    from.region,
+                )}`,
             );
         }
         const region = from.region;
@@ -192,7 +194,6 @@ export function sanityCheckAdjacencies<T>(
         } else {
             if (
                 region.width > top.region.width ||
-                region.height > top.region.height ||
                 region.x < top.region.x ||
                 region.x + region.width > top.region.x + top.region.width ||
                 region.y !== top.region.y + top.region.height
@@ -205,7 +206,6 @@ export function sanityCheckAdjacencies<T>(
                 );
             }
         }
-
         const left = adjacencies[Position.Left];
         if (left === SpecialAdjacency.None) {
             if (region.x !== 0) {
@@ -222,7 +222,6 @@ export function sanityCheckAdjacencies<T>(
             );
         } else {
             if (
-                region.width > left.region.width ||
                 region.height > left.region.height ||
                 region.y < left.region.y ||
                 region.y + region.height > left.region.y + left.region.height ||
@@ -236,7 +235,6 @@ export function sanityCheckAdjacencies<T>(
                 );
             }
         }
-
         const bottom = adjacencies[Position.Bottom];
         if (bottom === SpecialAdjacency.None) {
             if (region.y + region.height !== imageHeight) {
@@ -254,7 +252,6 @@ export function sanityCheckAdjacencies<T>(
         } else {
             if (
                 region.width > bottom.region.width ||
-                region.height > bottom.region.height ||
                 region.x < bottom.region.x ||
                 region.x + region.width >
                     bottom.region.x + bottom.region.width ||
@@ -268,7 +265,6 @@ export function sanityCheckAdjacencies<T>(
                 );
             }
         }
-
         const right = adjacencies[Position.Right];
         if (right === SpecialAdjacency.None) {
             if (region.x + region.width !== imageWidth) {
@@ -285,7 +281,6 @@ export function sanityCheckAdjacencies<T>(
             );
         } else {
             if (
-                region.width > right.region.width ||
                 region.height > right.region.height ||
                 region.y < right.region.y ||
                 region.y + region.height >
@@ -301,7 +296,6 @@ export function sanityCheckAdjacencies<T>(
             }
         }
     });
-
     flattenToHomogeneous(tree).forEach(homogeneousRegion => {
         if (!adjacencyMap.has(homogeneousRegion)) {
             throw new Error(

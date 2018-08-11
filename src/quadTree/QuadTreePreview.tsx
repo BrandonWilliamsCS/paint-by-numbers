@@ -50,20 +50,12 @@ export class HeterogeneousRegionPreview<T> extends React.Component<
 > {
     public renderSubTree(subtree: QuadTree<T>) {
         return (
-            <div
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                }}
-            >
-                <QuadTreePreview
-                    tree={subtree}
-                    contentRenderer={this.props.contentRenderer}
-                    scale={this.props.scale}
-                    gap={this.props.gap}
-                />
-            </div>
+            <QuadTreePreview
+                tree={subtree}
+                contentRenderer={this.props.contentRenderer}
+                scale={this.props.scale}
+                gap={this.props.gap}
+            />
         );
     }
 
