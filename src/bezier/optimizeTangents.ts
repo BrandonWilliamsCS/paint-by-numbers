@@ -24,12 +24,27 @@ export function optimizeTangents(
 ): Vector[] {
     const workingSystem = createInitialSystem(given.n);
 
+    // The E matrix could be described as a diagonal-of-width-three matrix.
+    // To build it, the paper describes the matrix row-by-row. This yields an
+    //  algorithm with a lot of unideal double-calculation and special cases:
+    // Most rows have both an "i" component and an "i-1" component, but the
+    //  first and last rows only have one or the other. Additionally, because
+    //  the outer rows/columns of E are only two values wide instead of three,
+    //  those must be treated as conditional cases.
+    // To avoid conditional special cases like that, we can instead iterate
+    //  along the diagonal to the (n - 1)th row/column, adding in just i's
+    //  contribution to current the 2x2 box with i at the top left corner.
     new Array(given.sections.length).fill(0).forEach((_, i) => {
+        const workingSubSystem = createInitialSystem(2);
+
         // Start by summing up the j-dependent parts
-        addInnerSums(workingSystem, i, given, A, t);
+        addInnerSums(workingSubSystem, i, given, A, t);
 
         // Now multiply by the alpha factors.
-        multiplyByAlphas(workingSystem, i, α);
+        multiplyByAlphas(workingSubSystem, i, α);
+
+        // Finally, add the subsystem into the full working system.
+        addSubSystem(workingSystem, workingSubSystem, i);
     });
 
     return solveSystem(workingSystem);
@@ -47,14 +62,14 @@ function createInitialSystem(n: number): LinearSystem {
 }
 
 function addInnerSums(
-    workingSystem: LinearSystem,
+    workingSubSystem: LinearSystem,
     i: number,
     given: GivenData,
     A: MemoizedA,
     t: number[][],
 ) {
     const m_i = given.m(i);
-    for (let j = 0; j <= m_i; j++) {
+    for (let j = 0; j < m_i; j++) {
         const t_ij = t[i][j];
         const A_ij = A(i, j);
         const B_23_t_ij = given.B(2, 3, t_ij);
@@ -64,23 +79,23 @@ function addInnerSums(
         const E_i_ip1 = B_23_t_ij * B_33_t_ij;
         const E_ip1_i = E_i_ip1;
         const E_ip1_ip1 = B_33_t_ij * B_33_t_ij;
-        workingSystem.E[i][i] += E_i_i;
-        workingSystem.E[i][i + 1] += E_i_ip1;
-        workingSystem.E[i + 1][i] += E_ip1_i;
-        workingSystem.E[i + 1][i + 1] += E_ip1_ip1;
+        workingSubSystem.E[0][0] += E_i_i;
+        workingSubSystem.E[0][1] += E_i_ip1;
+        workingSubSystem.E[1][0] += E_ip1_i;
+        workingSubSystem.E[1][1] += E_ip1_ip1;
 
         // Remember, A maps to points. We need to repeat for both x and y.
         dimensions.forEach(dimension => {
             const y_i_part = B_23_t_ij * A_ij[dimension];
             const y_ip1_part = B_33_t_ij * A_ij[dimension];
-            workingSystem.Y[dimension][i] += y_i_part;
-            workingSystem.Y[dimension][i + 1] += y_ip1_part;
+            workingSubSystem.Y[dimension][0] += y_i_part;
+            workingSubSystem.Y[dimension][1] += y_ip1_part;
         });
     }
 }
 
 function multiplyByAlphas(
-    workingSystem: LinearSystem,
+    workingSubSystem: LinearSystem,
     i: number,
     α: number[][],
 ) {
@@ -91,16 +106,32 @@ function multiplyByAlphas(
     const E_i_ip1 = -1 * α_i0 * α_i1;
     const E_ip1_i = E_i_ip1;
     const E_ip1_ip1 = α_i1 * α_i1;
-    workingSystem.E[i][i] *= E_i_i;
-    workingSystem.E[i][i + 1] *= E_i_ip1;
-    workingSystem.E[i + 1][i] *= E_ip1_i;
-    workingSystem.E[i + 1][i + 1] *= E_ip1_ip1;
+    workingSubSystem.E[0][0] *= E_i_i;
+    workingSubSystem.E[0][1] *= E_i_ip1;
+    workingSubSystem.E[1][0] *= E_ip1_i;
+    workingSubSystem.E[1][1] *= E_ip1_ip1;
 
     dimensions.forEach(dimension => {
         const y_i_part = α_i0;
         const y_ip1_part = -α_i1;
-        workingSystem.Y[dimension][i] *= y_i_part;
-        workingSystem.Y[dimension][i + 1] *= y_ip1_part;
+        workingSubSystem.Y[dimension][0] *= y_i_part;
+        workingSubSystem.Y[dimension][1] *= y_ip1_part;
+    });
+}
+
+function addSubSystem(
+    workingSystem: LinearSystem,
+    currentSubSystem: LinearSystem,
+    i: number,
+) {
+    workingSystem.E[i][i] += currentSubSystem.E[0][0];
+    workingSystem.E[i][i + 1] += currentSubSystem.E[0][1];
+    workingSystem.E[i + 1][i] += currentSubSystem.E[1][0];
+    workingSystem.E[i + 1][i + 1] += currentSubSystem.E[1][1];
+
+    dimensions.forEach(dimension => {
+        workingSystem.Y[dimension][i] += currentSubSystem.Y[dimension][0];
+        workingSystem.Y[dimension][i + 1] += currentSubSystem.Y[dimension][1];
     });
 }
 

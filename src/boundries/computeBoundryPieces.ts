@@ -1,6 +1,7 @@
 import Deque from "denque";
 import simplifyChainArray from "simplify-js";
 
+import { findBestFit } from "../bezier/findBestFit";
 import { Point } from "../Geometry";
 import { BoundryPiece } from "./BoundryPiece";
 import { PointGraph } from "./PointGraph";
@@ -100,10 +101,15 @@ function convertToBoundryPieces(chains: Array<Deque<Point>>): BoundryPiece[] {
         // TODO: allow custom
         const simplificationTolerance = 2;
         const simplifiedChain = simplifyChain(chain, simplificationTolerance);
+        const piecewiseBezier = findBestFit(
+            simplifiedChain.toArray(),
+            chain.toArray(),
+        );
         return {
             isLoop: chain.peekBack() === chain.peekFront(),
             chain,
             simplifiedChain,
+            piecewiseBezier,
         };
     });
 }

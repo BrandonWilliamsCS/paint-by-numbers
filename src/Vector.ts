@@ -8,6 +8,13 @@ export namespace Vector {
         return normalize(rawDirection);
     }
 
+    export function add(t: Vector, u: Vector): Vector {
+        return {
+            x: t.x + u.x,
+            y: t.y + u.y,
+        };
+    }
+
     export function between(startPoint: Point, endPoint: Point): Vector {
         return {
             x: endPoint.x - startPoint.x,

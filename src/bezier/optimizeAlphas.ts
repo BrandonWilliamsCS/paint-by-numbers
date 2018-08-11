@@ -55,7 +55,7 @@ function addInnerSums(
     t: number[][],
 ) {
     const m_i = given.m(i);
-    for (let j = 0; j <= m_i; j++) {
+    for (let j = 0; j < m_i; j++) {
         const t_ij = t[i][j];
         const A_ij = A(i, j);
         const B_23_t_ij = given.B(2, 3, t_ij);

@@ -38,7 +38,7 @@ export class GivenData {
     public P(i: number): Point {
         if (i < 0 || i >= this.n) {
             throw new Error(`Invalid point number "${i}"`);
-        } else if (i === this.n) {
+        } else if (i === this.n - 1) {
             // The last critical point is at the end of the last section.
             const lastSection = this.sections[this.sections.length - 1];
             return lastSection[lastSection.length - 1];
@@ -125,8 +125,8 @@ export class GivenData {
     }
 
     public static forPoints(
-        dataPoints: Point[],
         criticalPoints: Point[],
+        dataPoints: Point[],
     ): GivenData {
         if (
             dataPoints[0] !== criticalPoints[0] ||
