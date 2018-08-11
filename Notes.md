@@ -48,12 +48,14 @@ The paper has an outrageous amount of typos. Some in particular:
 1. ignore any j=0 in sums - should just be j = 1.
 1. in equation 10, the definition of A is wrong; P_i0 and P_i1 should be
     replaced by P_i and P_i+1, respectively
+1. in equation 11 (the base error definition), first t̂ should have subscript i
 1. in equation 17 (computing a_i1), swap D_i1 and X_i
-1. in equation 20, t_n+1 is actually t_n-1
+1. in equation 22, t_n+1 is actually t_n-1
 1. in equation 24:
     1. ignore leading "-"
     1. add "-" between sums in t_i term
-    1. the RHS "-" applies to the whole rest of the expression (wrapp in parens)
+    1. second sum in t_i term should be B_33, not B_23
+    1. the RHS "-" applies to the whole rest of the expression (wrap in parens)
 
 ## Rough algorithm:
 

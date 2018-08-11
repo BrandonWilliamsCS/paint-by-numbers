@@ -3,6 +3,7 @@ import { Point } from "../Geometry";
 // Variables will be named in a somewhat mathematically standard way.
 // tslint:disable:variable-name
 
+export const dimensions: [DimensionKey, DimensionKey] = ["x", "y"];
 export type DimensionKey = keyof Point;
 export type MemoizedA = (i: number, j: number) => Point;
 
