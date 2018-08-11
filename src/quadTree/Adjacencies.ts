@@ -336,6 +336,9 @@ export function flattenAdjacencies<T>(
             .flatMap(
                 Array.from(adjacencyMap.entries()),
                 ([tree, adjacencies]) => {
+                    if (tree.variant !== "homogeneous") {
+                        return [];
+                    }
                     return Position.sides.map(side => {
                         const adjacency = adjacencies[side];
                         // only pay attention to homogeneous adjacencies.
@@ -346,13 +349,17 @@ export function flattenAdjacencies<T>(
                         ) {
                             return badTree;
                         }
+
                         // to "standardize", always go "from" the smaller region.
-                        if (
-                            tree.region.height > adjacency.region.height ||
-                            tree.region.width > adjacency.region.width
-                        ) {
+                        // Note that we only care about one dimension (that of
+                        //  the shared side)
+                        const smallToBig = Position.isVertical(side)
+                            ? tree.region.width <= adjacency.region.width
+                            : tree.region.height <= adjacency.region.height;
+                        if (!smallToBig) {
                             return badTree;
                         }
+
                         // in the case of equal-sized regions, only go right or down.
                         if (
                             side !== Position.Right &&

@@ -114,6 +114,10 @@ export namespace Position {
         return (2 * toward + 12 - from) % 8;
     }
 
+    export function isVertical(position: Position): boolean {
+        return position === Position.Top || position === Position.Bottom;
+    }
+
     export const corners: CornerPosition[] = [
         Position.TopLeft,
         Position.TopRight,
