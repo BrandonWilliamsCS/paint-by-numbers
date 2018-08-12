@@ -343,7 +343,6 @@ export function flattenAdjacencies<T>(
                         const adjacency = adjacencies[side];
                         // only pay attention to homogeneous adjacencies.
                         if (
-                            tree.variant !== "homogeneous" ||
                             adjacency === SpecialAdjacency.None ||
                             adjacency.variant !== "homogeneous"
                         ) {
@@ -361,11 +360,13 @@ export function flattenAdjacencies<T>(
                         }
 
                         // in the case of equal-sized regions, only go right or down.
+                        const sameSized = Position.isVertical(side)
+                            ? tree.region.width === adjacency.region.width
+                            : tree.region.height === adjacency.region.height;
                         if (
                             side !== Position.Right &&
                             side !== Position.Bottom &&
-                            (tree.region.height === adjacency.region.height ||
-                                tree.region.width === adjacency.region.width)
+                            sameSized
                         ) {
                             return badTree;
                         }
