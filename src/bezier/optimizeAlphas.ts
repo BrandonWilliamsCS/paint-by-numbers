@@ -7,9 +7,16 @@ import { dimensions, GivenData, MemoizedA } from "./GivenData";
 // tslint:disable:variable-name
 
 interface LinearSystem {
-    D1: Vector;
-    D2: Vector;
-    X: Vector;
+    x: {
+        D1: Vector;
+        D2: Vector;
+        X: Vector;
+    };
+    y: {
+        D1: Vector;
+        D2: Vector;
+        X: Vector;
+    };
 }
 
 export function optimizeAlphas(
@@ -33,9 +40,16 @@ function buildVectors(
 ): LinearSystem {
     // Initialize to 0s so we can add to it
     const workingSystem: LinearSystem = {
-        D1: { x: 0, y: 0 },
-        D2: { x: 0, y: 0 },
-        X: { x: 0, y: 0 },
+        x: {
+            D1: { x: 0, y: 0 },
+            D2: { x: 0, y: 0 },
+            X: { x: 0, y: 0 },
+        },
+        y: {
+            D1: { x: 0, y: 0 },
+            D2: { x: 0, y: 0 },
+            X: { x: 0, y: 0 },
+        },
     };
 
     // Start by summing up the j-dependent parts
@@ -66,16 +80,16 @@ function addInnerSums(
             const d_i1 = B_23_t_ij * B_23_t_ij;
             const d_i2 = B_23_t_ij * B_33_t_ij;
             const x_i1 = B_23_t_ij * A_ij[dimension];
-            workingSystem.D1.x += d_i1;
-            workingSystem.D2.x += d_i2;
-            workingSystem.X.x += x_i1;
+            workingSystem[dimension].D1.x += d_i1;
+            workingSystem[dimension].D2.x += d_i2;
+            workingSystem[dimension].X.x += x_i1;
 
-            const d_i3 = d_i2;
+            const d_i3 = B_23_t_ij * B_33_t_ij;
             const d_i4 = B_33_t_ij * B_33_t_ij;
             const x_i2 = B_33_t_ij * A_ij[dimension];
-            workingSystem.D1.y += d_i3;
-            workingSystem.D2.y += d_i4;
-            workingSystem.X.y += x_i2;
+            workingSystem[dimension].D1.y += d_i3;
+            workingSystem[dimension].D2.y += d_i4;
+            workingSystem[dimension].X.y += x_i2;
         });
     }
 }
@@ -92,25 +106,31 @@ function multiplyByTangents(
         const t̂_ip1_part = t̂_ip1[dimension];
 
         const d_i1 = t̂_i_part * t̂_i_part;
-        const d_i2 = t̂_i_part * t̂_ip1_part;
+        const d_i2 = -t̂_i_part * t̂_ip1_part;
         const x_i1 = -t̂_i_part;
-        workingSystem.D1.x *= d_i1;
-        workingSystem.D2.x *= d_i2;
-        workingSystem.X.x *= x_i1;
+        workingSystem[dimension].D1.x *= d_i1;
+        workingSystem[dimension].D2.x *= d_i2;
+        workingSystem[dimension].X.x *= x_i1;
 
-        const d_i3 = d_i2;
-        const d_i4 = t̂_ip1_part * t̂_ip1_part;
+        const d_i3 = -t̂_i_part * t̂_ip1_part;
+        const d_i4 = -t̂_ip1_part * t̂_ip1_part;
         const x_i2 = -t̂_ip1_part;
-        workingSystem.D1.y *= d_i3;
-        workingSystem.D2.y *= d_i4;
-        workingSystem.X.y *= x_i2;
+        workingSystem[dimension].D1.y *= d_i3;
+        workingSystem[dimension].D2.y *= d_i4;
+        workingSystem[dimension].X.y *= x_i2;
     });
 }
 
 function solveSystem(system: LinearSystem) {
-    // math expects and returns an array of rows.
-    const A = [[system.D1.x, system.D2.x], [system.D1.y, system.D2.y]];
-    const b = [system.X.x, system.X.y];
+    // Due to the way the derivative of the sum of squares of vector magnitudes
+    //  works out, we can just add all of the system.x stuff to the
+    //  corresponding system.y stuff and use that in the linear system.
+    const A = [
+        [system.x.D1.x + system.y.D1.x, system.x.D2.x + system.y.D2.x],
+        [system.x.D1.y + system.y.D1.y, system.x.D2.y + system.y.D2.y],
+    ];
+    const b = [system.x.X.x + system.y.X.x, system.x.X.y + system.x.X.y];
+    // mathjs returns an array of rows, so just turn it into an array.
     const x = math.lusolve(A, b) as number[][];
     return [x[0][0], x[1][0]];
 }

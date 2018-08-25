@@ -2,12 +2,7 @@ import Bezier from "bezier-js";
 
 import { Point } from "../Geometry";
 import { Vector } from "../Vector";
-import {
-    dimensions,
-    generateMemoizedA,
-    GivenData,
-    MemoizedA,
-} from "./GivenData";
+import { generateMemoizedA, GivenData, MemoizedA } from "./GivenData";
 import { optimizeAlphas } from "./optimizeAlphas";
 import { optimizeTangents } from "./optimizeTangents";
 
@@ -86,7 +81,7 @@ function computeSectionCurves(
     t̂: Vector[],
     α: number[][],
 ): Bezier[] {
-    return given.sections.map((section, i) => {
+    return given.sections.map((_, i) => {
         const controlPointOffset1 = Vector.scale(t̂[i], α[i][0]);
         const controlPointOffset2 = Vector.scale(t̂[i + 1], -α[i][1]);
         const P_i = given.P(i);
@@ -129,24 +124,19 @@ function computeError(
         return (
             acc +
             new Array(given.m(i)).fill(0).reduce((sectionAcc, _2, j) => {
-                // We don't want to end up with a vector here.
-                // For this case, since we need error distance, add the
-                //  magnitude of the vector to the error sum.
                 const t_ij = t[i][j];
                 const A_ij = A(i, j);
                 const B_23_ij = given.B(2, 3, t_ij);
                 const B_33_ij = given.B(3, 3, t_ij);
-                const differenceComponents = dimensions.map(dimension => {
-                    const pointDifference =
-                        A_ij[dimension] +
-                        α_i0 * t̂_i[dimension] * B_23_ij -
-                        α_i1 * t̂_ip1[dimension] * B_33_ij;
-                    return pointDifference * pointDifference;
-                });
-                return Math.sqrt(
-                    differenceComponents[0] * differenceComponents[0] +
-                        differenceComponents[1] * differenceComponents[1],
+                const difference = Vector.add(
+                    A_ij,
+                    Vector.scale(t̂_i, α_i0 * B_23_ij),
+                    Vector.scale(t̂_ip1, -α_i1 * B_33_ij),
                 );
+                // We don't want to end up with a vector here.
+                // For this case, since we need error distance, add the
+                //  squared magnitude of the vector to the error sum.
+                return sectionAcc + Vector.dot(difference, difference);
             }, 0)
         );
     }, 0);

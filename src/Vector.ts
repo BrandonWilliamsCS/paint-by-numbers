@@ -8,11 +8,15 @@ export namespace Vector {
         return normalize(rawDirection);
     }
 
-    export function add(t: Vector, u: Vector): Vector {
+    export function add(t: Vector, u: Vector, v?: Vector): Vector {
         return {
-            x: t.x + u.x,
-            y: t.y + u.y,
+            x: t.x + u.x + (v ? v.x : 0),
+            y: t.y + u.y + (v ? v.y : 0),
         };
+    }
+
+    export function dot(t: Vector, u: Vector): number {
+        return t.x * u.x + t.y * u.y;
     }
 
     export function between(startPoint: Point, endPoint: Point): Vector {
@@ -22,11 +26,19 @@ export namespace Vector {
         };
     }
 
+    export function length(startPoint: Point, endPoint: Point): number {
+        return magnitude(between(startPoint, endPoint));
+    }
+
+    export function magnitude(vector: Vector): number {
+        return Math.sqrt(vector.x * vector.x + vector.y * vector.y);
+    }
+
     export function normalize(vector: Vector): Vector {
-        const magnitude = Math.sqrt(vector.x * vector.x + vector.y * vector.y);
+        const m = magnitude(vector);
         return {
-            x: vector.x / magnitude,
-            y: vector.y / magnitude,
+            x: vector.x / m,
+            y: vector.y / m,
         };
     }
 

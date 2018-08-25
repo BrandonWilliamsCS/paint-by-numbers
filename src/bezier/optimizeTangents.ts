@@ -35,7 +35,7 @@ export function optimizeTangents(
     //  along the diagonal to the (n - 1)th row/column, adding in just i's
     //  contribution to current the 2x2 box with i at the top left corner.
     new Array(given.sections.length).fill(0).forEach((_, i) => {
-        const workingSubSystem = createInitialSystem(2);
+        const workingSubSystem = createInitialSystem(given.n);
 
         // Start by summing up the j-dependent parts
         addInnerSums(workingSubSystem, i, given, A, t);
@@ -88,8 +88,8 @@ function addInnerSums(
         dimensions.forEach(dimension => {
             const y_i_part = B_23_t_ij * A_ij[dimension];
             const y_ip1_part = B_33_t_ij * A_ij[dimension];
-            workingSubSystem.Y[dimension][0] += y_i_part;
-            workingSubSystem.Y[dimension][1] += y_ip1_part;
+            workingSubSystem.Y[dimension][i] += y_i_part;
+            workingSubSystem.Y[dimension][i + 1] += y_ip1_part;
         });
     }
 }
@@ -112,10 +112,10 @@ function multiplyByAlphas(
     workingSubSystem.E[1][1] *= E_ip1_ip1;
 
     dimensions.forEach(dimension => {
-        const y_i_part = α_i0;
-        const y_ip1_part = -α_i1;
-        workingSubSystem.Y[dimension][0] *= y_i_part;
-        workingSubSystem.Y[dimension][1] *= y_ip1_part;
+        const y_i_part = -α_i0;
+        const y_ip1_part = α_i1;
+        workingSubSystem.Y[dimension][i] *= y_i_part;
+        workingSubSystem.Y[dimension][i + 1] *= y_ip1_part;
     });
 }
 
@@ -130,8 +130,9 @@ function addSubSystem(
     workingSystem.E[i + 1][i + 1] += currentSubSystem.E[1][1];
 
     dimensions.forEach(dimension => {
-        workingSystem.Y[dimension][i] += currentSubSystem.Y[dimension][0];
-        workingSystem.Y[dimension][i + 1] += currentSubSystem.Y[dimension][1];
+        workingSystem.Y[dimension][i] += currentSubSystem.Y[dimension][i];
+        workingSystem.Y[dimension][i + 1] +=
+            currentSubSystem.Y[dimension][i + 1];
     });
 }
 
