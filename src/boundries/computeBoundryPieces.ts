@@ -99,7 +99,7 @@ function addPointsFromSegment(chain: Deque<Point>, start: Point, end: Point) {
 function convertToBoundryPieces(chains: Array<Deque<Point>>): BoundryPiece[] {
     return chains.map(chain => {
         // TODO: allow custom
-        const simplificationTolerance = 2;
+        const simplificationTolerance = 1;
         const simplifiedChain = simplifyChain(chain, simplificationTolerance);
         const piecewiseBezier = findBestFit(
             simplifiedChain.toArray(),

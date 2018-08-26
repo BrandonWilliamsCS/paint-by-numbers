@@ -106,6 +106,7 @@ export class HomogeneousRegionPreview<T> extends React.Component<
         const region = this.props.region;
         return (
             <div
+                id={JSON.stringify(region.region)}
                 style={{
                     width: region.region.width * scale,
                     height: region.region.height * scale,

@@ -37,6 +37,8 @@ export class Workspace extends React.Component<WorkspaceProps> {
                             imageHeight={project.image.height}
                             thickness={2}
                             compareToExact
+                            mode={"curves"}
+                            showPieces
                         />
                     </div>
                 )}

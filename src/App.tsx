@@ -7,7 +7,7 @@ import { Project } from "./project/Project";
 import "./App.css";
 import { MainMenu } from "./layout/menu/MainMenu";
 import { Workspace } from "./layout/Workspace";
-import sampleImage from "./sample-large.bmp";
+import sampleImage from "./sample-blob.bmp";
 
 interface AppState {
     project: Project | undefined;

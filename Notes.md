@@ -72,6 +72,28 @@ Loop until acceptable:
     compute tangent vector angles (eq 28)
 ```
 
+## Additional Considerations
+
+Are the t̂ values always units after optimization?
+
+### Precision
+
+Current algorithm is highly precise due to how many "sections" each piece is
+broken into. When "simplfying" the borders after consolidating, a much lower
+threshold is probably acceptable. Of course, it varies by project.
+
+### Corners
+
+Corner points are not precisely estimated. In some pictures this may yield a
+poor fit as a smooth curve attempts to fit sharp data or unpleasant sharpness at
+a recklessly chosen corner.
+
+### `t` Estimation
+
+Need to consider case like
+https://www.desmos.com/calculator/x2ivokzyhk
+where there are multiple "closest" points that may not be appropriate.
+
 # UI Options
 
 1. save content under a specific name

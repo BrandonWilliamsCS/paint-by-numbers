@@ -16,9 +16,21 @@ interface LinearSystem {
     };
 }
 
+export function computeInitialTangents(given: GivenData): Vector[] {
+    const tangentEstimates: Vector[] = [];
+    for (let i = 0; i < given.n; i++) {
+        const startPoint = i === 0 ? given.P(i) : given.P(i - 1);
+        const endPoint = i === given.n - 1 ? given.P(i) : given.P(i + 1);
+        const vector = Vector.directionTo(startPoint, endPoint);
+        tangentEstimates.push(vector);
+    }
+    return tangentEstimates;
+}
+
 export function optimizeTangents(
     given: GivenData,
     A: MemoizedA,
+    currentValues: Vector[],
     α: number[][],
     t: number[][],
 ): Vector[] {
@@ -47,7 +59,9 @@ export function optimizeTangents(
         addSubSystem(workingSystem, workingSubSystem, i);
     });
 
-    return solveSystem(workingSystem);
+    cleanSystem(workingSystem, currentValues);
+
+    return solveSystems(workingSystem, α);
 }
 
 function createInitialSystem(n: number): LinearSystem {
@@ -136,11 +150,107 @@ function addSubSystem(
     });
 }
 
-function solveSystem(system: LinearSystem): Vector[] {
-    const y_x = math.lusolve(system.E, system.Y.x) as number[][];
-    const y_y = math.lusolve(system.E, system.Y.y) as number[][];
+const epsilon = 1e-8;
+function cleanSystem(system: LinearSystem, currentValues: Vector[]) {
+    // If a row of the matrix is all 0s, the value of the associated tangent
+    //  will have no effect. If an entry in the constant term is 0, the vector
+    //  must be 0.
+    // But we don't want 0 vectors. Instead, let the alphas be set to 0.
+    // So, if some row has all 0s on either side, tweak the system to enforce
+    //  that that vector stays put (and prevent a singular matrix).
+    currentValues.forEach((currentValue, i) => {
+        if (
+            (system.Y.x[i] >= epsilon || system.Y.y[i] >= epsilon) &&
+            system.E[i].every(entry => entry >= epsilon)
+        ) {
+            return;
+        }
+        // Fix it by setting the row to a 1 in the diagonal...
+        system.E[i] = system.E[i].map((_, j) => (i === j ? 1 : 0));
+        // ...and the constant term equal to the previous value.
+        dimensions.map(dimension => {
+            system.Y[dimension][i] = currentValue[dimension];
+        });
+    });
+}
+
+function solveSystems(system: LinearSystem, α: number[][]): Vector[] {
+    const tans_x = solveSystem(system.E, system.Y.x, α);
+    const tans_y = solveSystem(system.E, system.Y.y, α);
     // Math returns an array of rows.
-    return lodash.zipWith(y_x, y_y, (y_x_i, y_y_i) =>
-        Point.from(y_x_i[0], y_y_i[0]),
+    return lodash.zipWith(tans_x, tans_y, (tans_x_i, tans_y_i) =>
+        Point.from(tans_x_i[0], tans_y_i[0]),
     );
+}
+
+//!! no alpha
+function solveSystem(E: number[][], y: number[], α: number[][]): number[][] {
+    try {
+        return math.lusolve(E, y) as number[][];
+    } catch (e) {
+        console.log(α);
+        // In some cases, a singluar E is okay. Try to recover.
+        if (!e.message || e.message.indexOf("is singular") === -1) {
+            throw e;
+        }
+        //!!
+        console.error(E);
+        console.error(y);
+        console.log(math.lup(E));
+        const possibleRecovery = recoverSingularSystem(E, y);
+        if (possibleRecovery) {
+            return possibleRecovery;
+        }
+        throw e;
+    }
+}
+
+// const epsilon = 1e-8;
+function recoverSingularSystem(E: number[][], y: number[]) {
+    // const { L, U } = math.lup(E) as { L: number[][]; U: number[][] };
+    // const d = math.lsolve(L, y) as number[][];
+    return undefined;
+    // We can only recover if all of the zero-filed rows in U are matched by
+    //  zero-filled entries in d. So find where the bad rows start in U and
+    //  the where the bad rows start in d and hope that d gets bad first.
+    //!! const firstBadURow = U.findIndex(row => row.every(u => u < epsilon));
+    // const firstBadDEntry = d.findIndex(entry => entry[0] < epsilon);
+    // if (firstBadDEntry === -1 || firstBadDEntry > firstBadURow) {
+    //     return undefined;
+    // }
+
+    // // if the matrix is all 0s, there's nothing we can do.
+    // if (firstBadURow === 0) {
+    //     return;
+    // }
+
+    // // The goal here is to obtain any α values that are dictated by the system,
+    // //  but preserve original α values when it could otherwise be arbitrary.
+    // // Signal that case with `undefined`. Start by assuming both values are that
+    // //  way, and only replace if we can get a specific value.
+    // const nonZeroCols: number[] = [];
+    // const x: Array<number | undefined> = [undefined, undefined];
+    // const upperRow = (U as number[][])[0];
+    // let rowSum = 0;
+    // if (upperRow[0] > epsilon) {
+    //     rowSum += upperRow[0];
+    // }
+    // if (upperRow[1] > epsilon) {
+    //     rowSum += upperRow[1];
+    // }
+    // // if the upper row is all 0, the α values can't matter.
+    // if (rowSum === 0) {
+    //     return α;
+    // }
+
+    // // Now replace any meaningful position with the appropriate value.
+    // // In the case that both values are meaninful, this causes them to be equal.
+    // const dictatedAlpha = d[0][0] / rowSum;
+    // if (upperRow[0] > epsilon) {
+    //     α[0] = dictatedAlpha;
+    // }
+    // if (upperRow[1] > epsilon) {
+    //     α[1] = dictatedAlpha;
+    // }
+    // return α;
 }
